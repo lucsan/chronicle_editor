@@ -1,0 +1,16 @@
+{
+  "name": "chronicleeditor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "jasmine",
+    "server": "node editor/server.js"
+  },
+  "author": "lucsan@zencorp.co.uk",
+  "license": "ISC",
+  "devDependencies": {
+    "nodefileio": "lucsan/nodefileio",
+    "jasmine": "^3.4.0"
+  }
+}
