@@ -12,11 +12,15 @@ const edit = () => {
   let output = document.getElementById('output')
   renderPropsList(output)
 
-  if (prop != '') {
-    saveButton(output)
+  if (prop != '' && prop != '{{ prop }}') {
+    //saveButton(output)
+    let e = document.createElement('div')
+    e.id = 'props'
+    e.className = 'propsEdit'
     const fullPlan = addsDefaults(propsPlans[prop])
-    const htmlAttrs = walks(fullPlan)
-    renderAtrtributesList(prop, htmlAttrs, output)
+    const htmlAttrs = walks(fullPlan, e)
+    output.appendChild(htmlAttrs)
+    //renderAtrtributesList(prop, htmlAttrs, output)
 
   }
 
@@ -37,13 +41,13 @@ const renderPropsList = (output) => {
   output.appendChild(a)
 }
 
-const saveButton = (output) => {
-  let sb = document.createElement('div')
-  sb.id = 'save'
-  sb.className = 'save'
-  sb.innerHTML = 'Save'
-  output.appendChild(sb)
-}
+// const saveButton = (output) => {
+//   let sb = document.createElement('div')
+//   sb.id = 'save'
+//   sb.className = 'save'
+//   sb.innerHTML = 'Save'
+//   output.appendChild(sb)
+// }
 
 const addsDefaults = (targetProp) => {
   const dp = defaultProp()
@@ -55,36 +59,95 @@ const addsDefaults = (targetProp) => {
   return targetProp
 }
 
+const walks = (object, el) => {
+  let e = document.createElement('div')
 
-const walks = (object) => {
-  let a = {}
-  let h = ''
-  const walk = (obj, a, ind, pa) => {
+  const walk = (obj, e, ind, pa) => {
     let indClass = indentClass(ind)
     for (let k in obj) {
 
       if (typeof(obj[k]) == 'object' && !Array.isArray(obj[k])) {
+        let e = document.createElement('div')
+        e.id = `${pa}${k}`
+        e.dataset.pa = pa
+        //e.classList.add('attrb', `${indClass}`)
+        e.className = `attrb ${indClass}`
+        let s = document.createElement('span')
+        s.innerText = k
+        s.className = `${indClass}`        
+        s.addEventListener('click', () => { editProp(`${pa}${k}`)})
+        e.appendChild(s)
+        el.appendChild(e)
+        //h += `<div id="${pa}${k}" class="attrb ${indClass}" data-pa="${pa}" >
+        //<span onclick="editProp('${pa}${k}')" class="${indClass}">${k}</span>`
 
-        h += `<div id="${pa}${k}" class="attrb ${indClass}" data-pa="${pa}" ><span onclick="editProp('${pa}${k}')" class="${indClass}">${k}</span>`
-        a[k] = {}
-        walk(obj[k], a[k], ++ind, pa += `${k}.`)
+        walk(obj[k], e, ++ind, pa += `${k}.`)
         --ind
         pa = pa.replace(`${k}.`, '')
       } else {
-        h += `<div id="${k}" class="attrb ${indClass}" data-pa="${pa}" ><span onclick="editProp('${pa}${k}')" >${k}</span><input type="text" name="${k}" value="${obj[k]}" /></div>`
+        let e = document.createElement('div')
+        e.className = `attrb ${indClass}`
+        e.dataset.pa = pa
 
-        a[k] = obj[k].toString()
-      }
-      if (typeof(obj[k]) == 'object' && !Array.isArray(obj[k])) {
-        h += '</div>'
+
+        let i = document.createElement('input')
+        i.id = `${pa}${k}`
+        i.value = obj[k]
+        i.setAttribute('type', 'text')
+        // e.name = k
+        // e.type = 'textArea'
+
+        let s = document.createElement('span')
+        s.innerText = k
+        s.addEventListener('click', () => {editProp(`${pa}${k}`)})
+
+
+        e.appendChild(s)
+        e.appendChild(i)
+        el.appendChild(e)
+        //h += `<div id="${k}" class="attrb ${indClass}" data-pa="${pa}" >
+        //<span onclick="editProp('${pa}${k}')" >${k}</span>
+        //<input type="text" name="${k}" value="${obj[k]}" /></div>`
+
+
       }
     }
 
   }
-  walk(object, a, 0, '')
+  walk(object, e, 0, '')
 
-  return h
+  return el
 }
+
+// const walks = (object) => {
+//   let a = {}
+//   let h = ''
+//   const walk = (obj, a, ind, pa) => {
+//     let indClass = indentClass(ind)
+//     for (let k in obj) {
+//
+//       if (typeof(obj[k]) == 'object' && !Array.isArray(obj[k])) {
+//
+//         h += `<div id="${pa}${k}" class="attrb ${indClass}" data-pa="${pa}" ><span onclick="editProp('${pa}${k}')" class="${indClass}">${k}</span>`
+//         a[k] = {}
+//         walk(obj[k], a[k], ++ind, pa += `${k}.`)
+//         --ind
+//         pa = pa.replace(`${k}.`, '')
+//       } else {
+//         h += `<div id="${k}" class="attrb ${indClass}" data-pa="${pa}" ><span onclick="editProp('${pa}${k}')" >${k}</span><input type="text" name="${k}" value="${obj[k]}" /></div>`
+//
+//         a[k] = obj[k].toString()
+//       }
+//       if (typeof(obj[k]) == 'object' && !Array.isArray(obj[k])) {
+//         h += '</div>'
+//       }
+//     }
+//
+//   }
+//   walk(object, a, 0, '')
+//
+//   return h
+// }
 
 const indentClass = (ind) => {
   if (ind > 0) return `indent_${ind}`

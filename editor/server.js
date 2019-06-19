@@ -82,3 +82,5 @@ start()
 
 // 📝 THe Following code is configured for win10 default browser.
 if (config.autoLoad) require('child_process').exec(`start http://localhost:${config.port}`)
+
+console.log(`Server running @ http://localhost:${config.port}, Auto browser loading: ${config.autoLoad}`)
