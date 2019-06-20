@@ -8,6 +8,12 @@
     "parserOptions": {
         "ecmaVersion": 2018
     },
+    "globals": {
+      "propsPlans": "readonly",
+      "prop": "writable",
+      "setsPlans": "readonly",
+      "set": "writable"
+    },
     "rules": {
         "indent": [
             "error",
