@@ -31,13 +31,25 @@ const router = (response, path) => {
   if (ext !== '') return [filepath, mtype]
 
   if (path.indexOf('/list') > -1) {
-    if (path.indexOf('/props') > -1) filepath = '/propsPlans.html'
-    if (path.indexOf('/sets') > -1) filepath = '/setsPlans.html'
+    if (path.indexOf('/props') > -1) filepath = '/editPlans.html'
+    if (path.indexOf('/sets') > -1) filepath = '/editPlans.html'
+  }
+
+  if (path.indexOf('/save') > -1) {
+    if (path.indexOf('/prop') > -1) filepath = '/test.html'
+    if (path.indexOf('/set') > -1) filepath = '/test.html'
+    if (path.indexOf('/props') > -1) filepath = '/test.html'
+    if (path.indexOf('/sets') > -1) filepath = '/test.html'
   }
 
   fs.readFile(`${config.root}${filepath}`,  (err, page) => {
     if (err && err.code == 'ENOENT') console.log(err)
-    parser(page.toString(), response, mtype, path)
+    if (page) {
+      parser(page.toString(), response, mtype, path)
+    } else {
+      responder(response, `Asset Not found: ${config.root}${filepath}`, mtype)
+    }
+
   })
   return [null, null]
 }
