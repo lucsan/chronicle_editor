@@ -1,4 +1,4 @@
-const defaultProp = () => {
+const prop = () => {
   return {
     artist: '',
     desc: '',
@@ -13,12 +13,6 @@ const defaultProp = () => {
       inv: {},
       bod: {},
     },
-    box: {},
-    combines: {
-      needs: [],
-      destroys: [],
-      desc: '',
-    },    
     properties: {
       attack: 0,
       defense: 0,
@@ -26,10 +20,15 @@ const defaultProp = () => {
       poking: true,
       drops: [],
     },
+    combines: {
+      needs: [],
+      destroys: [],
+      desc: '',
+    },
   }
 }
 
-const defaultSet = () => {
+const set = () => {
   return {
     desc: '',
     proseScript: '',
@@ -39,8 +38,12 @@ const defaultSet = () => {
   }
 }
 
-const defaultBox = () => {
+const box = () => {
   desc: ''
 }
 
-const defaultAll = () => { return { plan: plan, set: set, box: box } }
+const all = () => { return { plan: plan, set: set } }
+
+exports.all = all
+exports.plan = plan
+exports.set = set

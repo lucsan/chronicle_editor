@@ -1,5 +1,5 @@
 const propsPlans = {
-default: {
+  default: {
     artist: '',
     desc: '',
     loc: '',
@@ -26,6 +26,7 @@ default: {
         hit: () => {console.log('you hit');},
         poke: () => {console.log(`you poke`);},
       },
+      gut: {},
     },
     properties: {
       attack: 2,
