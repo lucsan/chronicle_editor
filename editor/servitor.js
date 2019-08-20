@@ -33,6 +33,11 @@ const newProp = (cmds, responder, response) => {
   responder(response, params, 'text/html')
 }
 
+const newPropAttrib = (cmds, responder, response) => {
+  console.log(cmds)
+  
+}
+
 const deletePropAttribute = (cmds) => {
   const address = cmds.address
   const prop = cmds.prop
@@ -113,6 +118,7 @@ const main = (cmds, responder, response) => {
   if (cmds.act == 'updateProp') return updateProp(cmds, responder, response)
   if (cmds.act == 'deleteProp') return deleteProp(cmds, responder, response)
   if (cmds.act == 'newProp') return newProp(cmds, responder, response)
+  if (cmds.act == 'newAttrib') return newPropAttrib(cmds, responder, response)
 
   console.log('cmds', cmds)  
 }

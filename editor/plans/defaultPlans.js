@@ -5,7 +5,6 @@ const defaultProp = () => {
     loc: '',
     locs: [],
     pickUp: false,
-    isBox: false,
     hit: true,
     strikes: false,
     actions: {
@@ -14,6 +13,7 @@ const defaultProp = () => {
       bod: {},
     },
     box: {},
+    boxs: [],
     combines: {
       needs: [],
       destroys: [],

@@ -8,7 +8,7 @@ window.chronicle.meta = {}
 
 const edit = (prop) => {
   window.chronicle.prop = prop  
-  console.log(window.chronicle.propsPlans)
+  //console.log(window.chronicle.propsPlans)
 
   window.chronicle.meta = infersMetaData()
 
@@ -22,45 +22,32 @@ const edit = (prop) => {
   //  ajax(tst)
 
   renderPropsList(output)
-
   if (typeof prop == 'undefined') return
-
 
   let e = document.createElement('div')
   e.id = 'propAttribs'
   e.className = 'propsEdit'
 
-  // const fullPlan = addsDefaults(propsPlans[prop])
   const fullPlan = window.chronicle.propsPlans[prop]    
   //const metaData = infersMetaData(fullPlan)
 
-  const htmlAttrs = walks(fullPlan, e)
+  const htmlAttrs = elementsFromObjects(fullPlan, e)
 
   const t = renderProp(prop)
 
-  let md = elCom('div', 'missingDefaults')
-  md.className = 'missingDefaults'
+  let md = elCom('div', { id: 'missingDefaults', classes: 'missingDefaults' } )
   let mds = missingDefaults(window.chronicle.propsPlans[prop])
-  // mds[prop] = missingDefaults(window.chronicle.propsPlans[prop])
-  walks(mds, md)    
+   elementsFromObjects(mds, md, 'default')    
 
- 
-
-  // Noted for later automation
-  let mb = document.createElement('div')
-  mb.innerText = 'make into a box'
-
-  output.appendChild(mb)
   output.appendChild(t)
   output.appendChild(htmlAttrs)
   output.appendChild(md)
-
-
 }
 
 const missingDefaults = (targetProp) => {
   let missing = []
   const dp = defaultProp()
+  if (targetProp == undefined) return dp  
   for (let i in dp) {
     if (!targetProp[i]) {
       missing[i] = dp[i]
@@ -70,20 +57,16 @@ const missingDefaults = (targetProp) => {
 }
 
 const renderProp = (prop) => {
-  let e = document.createElement('div')
-  e.id = 'prop'
-  let t = document.createElement('span')
-  t.innerText = prop
-  t.className = 'title'
-  let i = document.createElement('textarea')
-  i.className = 'textareaLong'
-  i.innerText = prop
+  let e = elCom('div', { id: 'prop' })
+  let t = elCom('span', { text: prop, classes: 'title' })
+  // t.innerText = prop
+  // t.className = 'title'
+  let i = elCom('textarea', { text: prop, classes: 'textareaLong' })
+  // i.className = 'textareaLong'
+  // i.innerText = prop
 
-  let a = renderButton('prop update', 'save')
-  a.addEventListener('click', () => { newProp(i) })
-
-  let d = renderButton('prop delete', 'delete')
-  d.addEventListener('click', () => {console.log(`delete prop ${prop}`)})
+  let a = renderButton('prop update', 'save', () => { newProp(i) })
+  let d = renderButton('prop delete', 'delete', () => { console.log(`delete prop ${prop}`) })
 
   e.appendChild(t)
   e.appendChild(i)
@@ -95,8 +78,8 @@ const renderProp = (prop) => {
 
 const renderPropsList = (output) => {
 
-  let c = elCom('div', 'thingsList')
-  let e = elCom('div', 'newProp')
+  let c = elCom('div', { id: 'thingsList' })
+  let e = elCom('div', { id: 'newProp' })
   e.innerText = 'New Prop'
   e.className = 'button'
   elAel(e, () => { edit('new') })
@@ -104,7 +87,7 @@ const renderPropsList = (output) => {
   c.appendChild(e)
 
   for (const p in window.chronicle.propsPlans) {
-    let el = elCom('div', p)
+    let el = elCom('div', { id: p })
     el.innerText = p
     el.className = `button ${p}`
     elAel(el, () => { edit(p) })
@@ -138,31 +121,15 @@ const infersMetaData = () => {
 
         a[k] = obj[k]
         s += `${k}.`
-//console.log('s',s, 'name', k, obj[k])
-
 
         walk(obj[k], a[k], s)
-
         s = s.substring(0, s.length - k.length - 2) 
-
-  
-
       } else {
-        //console.log('value', obj[k], k, typeof obj[k], obj, a)
         let tpo = typeof obj[k]
         if (Array.isArray(obj[k])) tpo = 'array'
-
-        //console.log('value', 'k', k, 's', s)
-        //s += `${k}-`
-        let t = `${s}${k}`
-        //console.log('new s', s)        
+        let t = `${s}${k}`    
         a[k] = tpo
         b[t] = tpo
-        //s = ''
-        //s = s.substring(0, s.length - k.length + 1) 
-        //s = s.substring(0, s.length) 
-        //console.log('new new s', t)              
-        //s += tpo
       }
     }
   }
@@ -173,15 +140,29 @@ const infersMetaData = () => {
   return b
 }
 
-const walks = (object, el) => {
-  let e = document.createElement('div')
+const elementsFromObjects = (object, el, isDefault) => {
 
-  const walk = (obj, e, ind, pa) => {
+  if (isDefault == null) {
+    let na = elCom('div', {})
+    //na.innerText = 'New Attrib'
+    let s = elCom('span', { text: 'New Attrib' } )
+    let t= elCom('textarea', { id: 'newPropAttrib', classes: 'textareaShort' })
+    let b = renderButton('save', 'save', () => { addPropAttribute('newPropAttrib') })
+
+    el.appendChild(na)
+    na.appendChild(s)
+    na.appendChild(t)
+    na.appendChild(b)
+
+  }
+
+
+  const walk = (obj, ind, pa) => {
     let indClass = indentClass(ind)
     for (let k in obj) {
       if (typeof(obj[k]) == 'object' && !Array.isArray(obj[k])) {
         nameLevelElement(el, k, pa, indClass)
-        walk(obj[k], e, ++ind, pa += `${k}.`)
+        walk(obj[k], ++ind, pa += `${k}.`)
         --ind
         pa = pa.replace(`${k}.`, '')
       } else {
@@ -189,15 +170,18 @@ const walks = (object, el) => {
       }
     }
   }
-  walk(object, e, 0, '')
+  walk(object, 0, '')
 
   return el
 }
 
+const addPropAttribute = (elId) => {
+  let el = document.getElementById(elId)
+  if (el.value == '') return
+  const cmds = JSON.stringify({ act: 'newPropAttrib', attrib:  el.value, prop: window.chronicle.prop })
+  ajax(cmds)
 
-const addAttribute = (a, b) => {
-  let e = document.getElementById(a)
-  console.log('addAttribute', a, b, e.value)  
+  console.log('addPropAttribute', elId, el.value)  
 
 }
 
@@ -250,51 +234,43 @@ const deleteProp = (el, prop, address) => {
 }
 
 const nameLevelElement = (el, k, pa, indClass) => {
-  let e = document.createElement('div')
-  //e.id = `${pa}${k}`
-  //e.dataset.pa = pa
-  //e.dataset.ty = 'ob'
-  e.className = `attrib ${indClass}`
 
-  let s = document.createElement('span')
-  s.innerText = k
-  s.className = `title ${indClass}`
+  // let s = document.createElement('span')
+  // s.innerText = k
+  // s.className = `title ${indClass}`
 
-  let i = document.createElement('textarea')
-  i.id = `${pa}${k}`
-  i.className = 'textareaShort'
+  // let i = document.createElement('textarea')
+  // i.id = `${pa}${k}`
+  // i.className = 'textareaShort'
 
-  let b = renderButton(`addAttribute ${pa}${k}`, 'add')
-  b.addEventListener('click', () => {addAttribute(`${pa}${k}`)})
+  let s = elCom('span', { text: k, classes: `title ${indClass}` })
+  let ta = elCom('textarea', { id: `${pa}${k}`, classes: 'textareaShort' })
+  let sb = renderButton('save', 'save', () => console.log('save prop attribute'))
+  let b = renderButton(`addPropAttribute ${pa}${k}`, 'add', () => { addPropAttribute(`${pa}${k}`) })
+  let e = elCom('div', { classes: `attrib ${indClass}`})
 
   e.appendChild(s)
-  e.appendChild(i)
+  e.appendChild(ta)
+  e.appendChild(sb)
   e.appendChild(b)
   el.appendChild(e)
 }
 
 const valueLevelElement = (el, obj, k, pa, indClass) => {
-  //console.log(el, obj, k, pa, indClass)
-  
-  let e = document.createElement('div')
-  e.className = `attrb ${indClass}`
-  //e.dataset.pa = pa
-  //e.dataset.ty = 'vl'
-
-  let i = document.createElement('textarea')
-  i.id = `${pa}${k}`
-  i.value = obj[k]
-  i.className = 'textareaLong'
+  let i = elCom('textarea', { id: `${pa}${k}`, classes: 'textareaLong' })
+  i.value = obj[k]  
 
   let s = document.createElement('span')
   s.innerText = k
   s.className = 'title'
 
-  let b = renderButton(`updateProp ${pa}${k}`)
-  b.addEventListener('click', () => {updateProp(i, window.chronicle.prop, `${pa}${k}`)})
+  let b = renderButton(`updateProp ${pa}${k}`, 'save', () => { updateProp(i, window.chronicle.prop, `${pa}${k}`) })
+  //elAel(b, () => { updateProp(i, window.chronicle.prop, `${pa}${k}`) })
 
-  let d = renderButton(`deleteProp ${pa}${k}`, 'delete')
-  d.addEventListener('click', () => {deleteProp(i, window.chronicle.prop, `${pa}${k}`)})
+  let d = renderButton(`deleteProp ${pa}${k}`, 'delete', () => { deleteProp(i, window.chronicle.prop, `${pa}${k}`) })
+  //d.addEventListener('click', () => { deleteProp(i, window.chronicle.prop, `${pa}${k}`) })
+
+  let e = elCom('div', { classes: `attrb ${indClass}` })
 
   e.appendChild(s)
   e.appendChild(i)
@@ -303,15 +279,19 @@ const valueLevelElement = (el, obj, k, pa, indClass) => {
   el.appendChild(e)
 }
 
-const renderButton = (cssClass, iconCode) => {
-  let e = document.createElement('span')
-  e.className = `objButton ${cssClass}`
+const renderButton = (cssClass, iconCode, func) => {
   let icon = '💾' // add/update
   if (iconCode == 'delete') icon = '➖'
   if (iconCode == 'add') icon = '➕'
-  e.innerText = icon
-  //e.addAttribute('title', iconCode)
-  return e
+
+  let el = elCom('span', { 
+    classes: `objButton ${cssClass}`, 
+    text: icon
+  })
+
+  el.setAttribute('title', iconCode)
+  elAel(el, func)
+  return el
 }
 
 const indentClass = (ind) => {
@@ -321,25 +301,30 @@ const indentClass = (ind) => {
 
 
 const listsLocations = () => {
-  let ul = elCom('ul', 'setsList')
+  let ul = elCom('ul', { id: 'setsList', classes: 'setsList' })
   for (let s in setsPlans) {
-    let li = elCom('li')
-    li.innerText = s
-    elAel(li, () => { console.log(s) }, 'click')
-    ul.appendChild(li)
+    ul.appendChild(elCom('li', { 
+      text: s,
+      'func': () => { console.log(s) } 
+    }))
   }
   return ul
+}
+
+const elCom = (elType, cmds) => {
+  let el = document.createElement(elType)
+  if (!cmds) return el
+  if (cmds.id) el.id = cmds.id
+  if (cmds.classes) el.className = cmds.classes
+  if (cmds.text) el.innerText = cmds.text
+  if (cmds.func) elAel(el, cmds.func, cmds.act )
+
+  return el
 }
 
 const elAel = (el, funk, act) => {
   if (!act) act = 'click'
   el.addEventListener(act, funk)
-}
-
-const elCom = (cmp, id) => {
-  let el = document.createElement(cmp)
-  if (id) el.id = id
-  return el
 }
 
 const ajax = (cmds) => {
