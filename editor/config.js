@@ -5,15 +5,32 @@ const config = () => {
     root: 'editor',
     index: 'public/editor.html',
     autoLoad: false,
-    source: {
-      propsPlans: 'editor/plans/propsStub1.js',
-      setsPlans: '',
-    },
-    target: {
-      propsPlans: 'editor/plans/propsStub1.js',
-      setsPlans: '',
-    },
+
+    plans: {
+      props: {
+        target: 'editor/plans/propsStub1.js',
+        source: 'editor/plans/propsStub1.js' 
+      },
+      sets: {}
+    }
   }
+
+
+    // propsPlans: {
+    //   use: {
+    //     target: '',
+    //     source: ''        
+    //   },
+    //   work: {
+    //     target: 'editor/plans/propsStub1.js',
+    //     source: 'editor/plans/propsStub1.js'        
+    //   },
+    //   test: {
+    //     target: 'editor/plans/testProps.js',
+    //     source: 'editor/plans/testProps.js'        
+    //   },
+    // },
+    // setsPlans: {}  
 
   // return {
   //   defaultProps: 'editor/plans/propsPlans.js',

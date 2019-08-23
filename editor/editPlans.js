@@ -37,7 +37,7 @@ const edit = (prop) => {
 
   let md = elCom('div', { id: 'missingDefaults', classes: 'missingDefaults' } )
   let mds = missingDefaults(window.chronicle.propsPlans[prop])
-   elementsFromObjects(mds, md, 'default')    
+  elementsFromObjects(mds, md, 'default')    
 
   output.appendChild(t)
   output.appendChild(htmlAttrs)
@@ -97,16 +97,6 @@ const renderPropsList = (output) => {
   output.appendChild(c)
 }
 
-const addsDefaults = (targetProp) => {
-  const dp = defaultProp()
-  for (let i in dp) {
-    if (!targetProp[i]) {
-      targetProp[i] = dp[i]
-    }
-  }
-  return targetProp
-}
-
 const infersMetaData = () => {
   //console.log('infering')
   let a = {}
@@ -147,7 +137,7 @@ const elementsFromObjects = (object, el, isDefault) => {
     //na.innerText = 'New Attrib'
     let s = elCom('span', { text: 'New Attrib' } )
     let t= elCom('textarea', { id: 'newPropAttrib', classes: 'textareaShort' })
-    let b = renderButton('save', 'save', () => { addPropAttribute('newPropAttrib') })
+    let b = renderButton('save', 'save', () => { newPropAttribute('newPropAttrib') })
 
     el.appendChild(na)
     na.appendChild(s)
@@ -175,13 +165,13 @@ const elementsFromObjects = (object, el, isDefault) => {
   return el
 }
 
-const addPropAttribute = (elId) => {
+const newPropAttribute = (elId) => {
   let el = document.getElementById(elId)
   if (el.value == '') return
-  const cmds = JSON.stringify({ act: 'newPropAttrib', attrib:  el.value, prop: window.chronicle.prop })
+  const cmds = JSON.stringify({ act: 'newPropAttrib', value:  el.value, prop: window.chronicle.prop })
   ajax(cmds)
 
-  console.log('addPropAttribute', elId, el.value)  
+  console.log('new Prop Attribute', elId, el.value)  
 
 }
 
@@ -246,7 +236,7 @@ const nameLevelElement = (el, k, pa, indClass) => {
   let s = elCom('span', { text: k, classes: `title ${indClass}` })
   let ta = elCom('textarea', { id: `${pa}${k}`, classes: 'textareaShort' })
   let sb = renderButton('save', 'save', () => console.log('save prop attribute'))
-  let b = renderButton(`addPropAttribute ${pa}${k}`, 'add', () => { addPropAttribute(`${pa}${k}`) })
+  let b = renderButton(`addPropAttribute ${pa}${k}`, 'add', () => { newPropAttribute(`${pa}${k}`) })
   let e = elCom('div', { classes: `attrib ${indClass}`})
 
   e.appendChild(s)
