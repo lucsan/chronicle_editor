@@ -19,7 +19,12 @@ describe('servitor', () => {
       }
     },
     pinkPonk: {
-
+      properties: {
+        fibble: {
+          leron: {}
+        },
+        gark: ['blarf'],
+      }
     }
   }
 
@@ -57,7 +62,7 @@ describe('servitor', () => {
       responder, 
     )
 
-    expect(typeof global.plans.props[tObj.prop]).toBe('object')
+    expect(typeof gpp[tObj.prop]).toBe('object')
   })
 
   it('should add attribute to prop', () => {
@@ -69,7 +74,7 @@ describe('servitor', () => {
 
     }, responder)
     
-    expect(global.plans.props[tObj.prop][tObj.prime]).not.toBe(undefined)
+    expect(gpp[tObj.prop][tObj.prime]).not.toBe(undefined)
   })
 
   it('should update a attribute value', () => {
@@ -105,75 +110,89 @@ describe('servitor', () => {
   })
 
   it('should delete a prop', () => {
+    gpp.pinkPonk = tObj.pinkPonk
     svt.main(
       {
         test: true,
         act: 'deleteProp',
-        prop: tObj.prime
+        prop: tObj.prop
       },
       responder
-    )
-    
-    expect(1).toBe(2)
+    )   
+    expect(typeof gpp[tObj.prop]).toBe('undefined')
   })
 
 
-  xit('should update an existing attributre value', () => {
-    const address = `${tObj.prime}.bounce`
+  it('should delete a attribute', () => {
     svt.main(
-      { 
-        test: true, 
-        act: 'updateProp',
-        prop: tObj.prop,
-        address: address,
-        value: () => { console.log('new bounce function') }
-      }, 
+      {
+        test: true,
+        act: 'deletePropAttribute',
+        prop: 'pinkPonk',
+        address: 'properties.fibble.leron'
+      },
       responder
     )
-console.log(gpp)
-
-    const obj = {
-      funca: () => { },
-      thing: {
-        boing: {
-          bounce: ''
-        },
-        funki: () => {}
-      },
-      stuff: {
-        instuff: {
-          funko: () => { console.log() }
-        }
-      }
-    }
-
-    // const {thing, ...abj} = obj
-
-    // console.log(obj)
-    // console.log({...obj})
-    // console.log(abj)
-    // abj.stuff.metho = {}
-    // console.log(obj)
-    
-    let pran = {}
-    pran.pron = { }
-
-    pran['pron']['pro'] = 'x'
-
-    // addressDeconstruct('obj.thing.boing.bounce', 'pron', pran)
-    addressAddressor(pran.pron, 'doings', {}) 
-    console.log('pran', pran)
-    addressAddressor(pran.pron, 'doings.boing', {}) 
-    addressAddressor(pran.pron, 'doings.flart', 'beepo') 
-      console.log('pran', pran)        
-    addressAddressor(pran.pron, 'doings.boing.bounce', 'val1' )
-
-    // addressAddressor(pran.pron, null, 'val3')
-    console.log('pran', pran)
-    
-
-    expect(typeof gpp[tObj.prop][tObj.prime].bounce).toBe('function')
+    expect(gpp.pinkPonk.properties.fibble.leron).toBe(undefined)
   })
+
+
+//   xit('should update an existing attributre value', () => {
+//     const address = `${tObj.prime}.bounce`
+//     svt.main(
+//       { 
+//         test: true, 
+//         act: 'updateProp',
+//         prop: tObj.prop,
+//         address: address,
+//         value: () => { console.log('new bounce function') }
+//       }, 
+//       responder
+//     )
+// console.log(gpp)
+
+//     const obj = {
+//       funca: () => { },
+//       thing: {
+//         boing: {
+//           bounce: ''
+//         },
+//         funki: () => {}
+//       },
+//       stuff: {
+//         instuff: {
+//           funko: () => { console.log() }
+//         }
+//       }
+//     }
+
+//     // const {thing, ...abj} = obj
+
+//     // console.log(obj)
+//     // console.log({...obj})
+//     // console.log(abj)
+//     // abj.stuff.metho = {}
+//     // console.log(obj)
+    
+//     let pran = {}
+//     pran.pron = { }
+
+//     pran['pron']['pro'] = 'x'
+
+//     // addressDeconstruct('obj.thing.boing.bounce', 'pron', pran)
+//     addressAddressor(pran.pron, 'doings', {}) 
+//     console.log('pran', pran)
+//     addressAddressor(pran.pron, 'doings.boing', {}) 
+//     addressAddressor(pran.pron, 'doings.flart', 'beepo') 
+//       console.log('pran', pran)        
+//     addressAddressor(pran.pron, 'doings.boing.bounce', 'val1' )
+
+//     // addressAddressor(pran.pron, null, 'val3')
+//     console.log('pran', pran)
+    
+
+//     expect(typeof gpp[tObj.prop][tObj.prime].bounce).toBe('function')
+//   })
 
   // /* Rules:
   //  * An address can be upto 3 items (a.b.c)

@@ -44,6 +44,7 @@ exports.main = (cmds, responder) => {
     } = cmds
 
     if (act == 'deleteProp') { return deleteProp(prop) }
+    if (act == 'deletePropAttribute') { return deletePropAttribute(prop, address) }
 
     if (!cmds.value && cmds.value != 'new') return { act: cmds.act, error: `no value given` }
 
@@ -71,20 +72,26 @@ exports.main = (cmds, responder) => {
   }
 
   const deleteProp = (prop) => {
-    console.log('delete prop' + prop)
-
-
+    delete(global.plans.props[prop])
     return { error: 'dev delPro', act: 'deleteProp'}
   }
 
-  const deletePropAttribute = () => {
+  const deletePropAttribute = (prop, address) => {
     console.log('delete Prop Attribute')
+    adressDestructor(global.plans.props[prop], address)
     return { error: 'dev delProAttr', act: 'deletePropAttribute' }    
   }
 
   const updatePropAttribute = (prop, address, value) => {
     addressAddressor(global.plans.props[prop], address, value)
     return { act: 'updatePropAttribute', prop: prop, address: address, value: value }
+  }
+
+  const adressDestructor = (plans, address) => {
+    const [prime, genus, order] = address.split('.')
+    if (order) return delete(plans[prime][genus][order])
+    if (genus) return delete(plans[prime][genus])
+    if (prime) return delete(plans[prime])
   }
 
   /* Rules:
@@ -146,7 +153,7 @@ exports.main = (cmds, responder) => {
   const setup = () => {
   //if (typeof responder == 'undefined') responder = (response, cmds, mimeType) => { console.log('No responder - data: ', cmds) }
 
-    if (typeof global.plans.props == 'undefined') { 
+    if (typeof global.plans == 'undefined' || typeof global.plans.props == 'undefined') { 
       ckr.readJsVar(config.plans.props.source)
       global.plans = {}
       global.plans.props = propsPlans
@@ -155,9 +162,12 @@ exports.main = (cmds, responder) => {
     // console.log('source', config.plans.props.source)
     // console.log('target', config.propsPlans.use.target)
 
-    if (cmds.act == 'newProp') return updateProp(cmds, responder)    
+    if (cmds.act == 'newProp') return updateProp(cmds, responder) 
     if (cmds.act == 'updateProp') return updateProp(cmds, responder)
-    if (cmds.act == 'deleteProp') return updateProp(cmds, responder)
+    if (cmds.act == 'deleteProp') return updateProp(cmds, responder)       
+    if (cmds.act == 'newPropAttribute') return updateProp(cmds, responder)    
+    if (cmds.act == 'deletePropAttribute') return updateProp(cmds, responder)    
+
 
     console.log('Unknown act: cmds ', cmds)  
     

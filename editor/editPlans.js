@@ -7,6 +7,12 @@ window.chronicle.prop = {}
 window.chronicle.meta = {}
 
 const edit = (prop) => {
+  //console.log(localStorage.getItem('chronicleProp'), prop)
+  if (prop != null) { 
+    localStorage.setItem('chronicleProp', prop)
+  } else {
+    prop = localStorage.getItem('chronicleProp')
+  }
   window.chronicle.prop = prop  
   //console.log(window.chronicle.propsPlans)
 
@@ -168,11 +174,22 @@ const elementsFromObjects = (object, el, isDefault) => {
 const newPropAttribute = (elId) => {
   let el = document.getElementById(elId)
   if (el.value == '') return
-  const cmds = JSON.stringify({ act: 'newPropAttrib', value:  el.value, prop: window.chronicle.prop })
+
+  const cmds = JSON.stringify({ 
+    act: 'newPropAttribute',
+    prop: window.chronicle.prop,
+    address: elId,
+    value: el.value
+  })
+  
   ajax(cmds)
-
   console.log('new Prop Attribute', elId, el.value)  
-
+}
+// or update exisiting atribute
+const savePropAttribute = (...data) => {
+  const prop = window.chronicle.prop
+  console.log('save prop attribute', data, prop)
+  
 }
 
 // const addedAttribute = () => {
@@ -235,7 +252,7 @@ const nameLevelElement = (el, k, pa, indClass) => {
 
   let s = elCom('span', { text: k, classes: `title ${indClass}` })
   let ta = elCom('textarea', { id: `${pa}${k}`, classes: 'textareaShort' })
-  let sb = renderButton('save', 'save', () => console.log('save prop attribute'))
+  let sb = renderButton('save', 'save', () => savePropAttribute(`${pa}${k}`, ta.value))
   let b = renderButton(`addPropAttribute ${pa}${k}`, 'add', () => { newPropAttribute(`${pa}${k}`) })
   let e = elCom('div', { classes: `attrib ${indClass}`})
 
@@ -271,9 +288,9 @@ const valueLevelElement = (el, obj, k, pa, indClass) => {
 
 const renderButton = (cssClass, iconCode, func) => {
   let icon = '💾' // add/update
-  if (iconCode == 'delete') icon = '➖'
-  if (iconCode == 'add') icon = '➕'
-
+  if (iconCode == 'delete') icon = '🚽' // ➖ 🗑 ☠ 🚮
+  if (iconCode == 'add') icon = '➕' // ✅ 🉑 ❌ 
+ 
   let el = elCom('span', { 
     classes: `objButton ${cssClass}`, 
     text: icon
