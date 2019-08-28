@@ -4,8 +4,9 @@ exports.main = (cmds, responder) => {
   const config = require('./config.js').config()
 
   const updateProp = (cmds, responder) => {
+    
     const udSel = updateSelector(cmds)
-    if (udSel.error) return responder(udSel.error, 'text/html')
+    if (udSel.error) return responder(JSON.stringify(udSel.error), 'text/html')
     
     if (!cmds.test) {
       const fileText = makePropsPlansFile()
@@ -14,6 +15,7 @@ exports.main = (cmds, responder) => {
 
     // const params = JSON.stringify({ act: 'updatedProp', prop: cmds.prop, address: cmds.address })
     //console.log('udSel', udSel)
+   console.log('udsel', udSel)
     
     const params = JSON.stringify(udSel)
 
@@ -62,29 +64,29 @@ exports.main = (cmds, responder) => {
   const newProp = (prop) => {
     if (global.plans.props[prop]) return { act: 'newProp', error: `prop ${prop} exists.` }
     global.plans.props[prop] = {}
-    return { act: 'newProp', prop: prop }
+    return { act: 'addedProp', prop: prop }
   }
 
   const newPropAttribute = (prop, value) => {
     if (global.plans.props[prop][value]) return { act: 'newPropAttribute', error: `prop ${prop} attrib ${value} exists.` }
     global.plans.props[prop][value] = null
-    return { act: 'newPropAttribute', prop: prop, address: value }    
+    return { act: 'addedPropAttribute', prop: prop, address: value }    
   }
 
   const deleteProp = (prop) => {
     delete(global.plans.props[prop])
-    return { error: 'dev delPro', act: 'deleteProp'}
+    return { error: 'dev delPro', act: 'deleteProp' }
   }
 
   const deletePropAttribute = (prop, address) => {
     console.log('delete Prop Attribute')
     adressDestructor(global.plans.props[prop], address)
-    return { error: 'dev delProAttr', act: 'deletePropAttribute' }    
+    return { act: 'deletedPropAttribute', prop: prop, address: address }    
   }
 
   const updatePropAttribute = (prop, address, value) => {
     addressAddressor(global.plans.props[prop], address, value)
-    return { act: 'updatePropAttribute', prop: prop, address: address, value: value }
+    return { act: 'updatedPropAttribute', prop: prop, address: address, value: value }
   }
 
   const adressDestructor = (plans, address) => {

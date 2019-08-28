@@ -1,53 +1,78 @@
 'strict'
-window.onload = () => edit()
+
 window.chronicle = {}
-window.chronicle.meta = {}
-window.chronicle.propsPlans = propsPlans
-window.chronicle.prop = {}
-window.chronicle.meta = {}
+window.chronicle.plans = {}
+window.chronicle.plans.props = propsPlans
+window.chronicle.plans.propsUpdate = propsPlans
+
+window.onload = () => edit()
 
 const edit = (prop) => {
-  //console.log(localStorage.getItem('chronicleProp'), prop)
+  prop = displayCurrentProp(prop)
+
+  let output = document.getElementById('output')
+  output.innerHTML = ''
+
+  output.appendChild(listsLocations())
+  output.appendChild(listsProps())
+
+  if (typeof window.chronicle.prop == 'undefined') return
+
+  output.appendChild(propOutput(prop))
+  output.appendChild(addNewAttribute())
+
+  const plans = window.chronicle.plans.props[prop]    
+  const attribElems = elementsFromObjects(plans, elCom('div'))
+
+  let mds = missingDefaults(window.chronicle.plans.props[prop])
+  const defaults = elementsFromObjects(mds, elCom('div', { id: 'missingDefaults', classes: 'missingDefaults' } ))    
+
+  output.appendChild(attribElems)
+  output.appendChild(defaults)
+}
+
+const propOutput = (prop) => {
+  let w = elCom('div', { id: 'prop' })
+  w.appendChild(elCom('div', { text: prop, classes: 'title'}))
+  w.appendChild(
+    elCom('div', { id: 'propAttributes', classes: 'propsEdit' })
+  )
+  return w
+}
+
+const displayCurrentProp = (prop) => {
   if (prop != null) { 
     localStorage.setItem('chronicleProp', prop)
   } else {
     prop = localStorage.getItem('chronicleProp')
   }
-  window.chronicle.prop = prop  
-  //console.log(window.chronicle.propsPlans)
+  window.chronicle.prop = prop
+  return prop
+}
 
-  window.chronicle.meta = infersMetaData()
+const listsLocations = () => {
+  let ul = elCom('ul', { id: 'setsList', classes: 'setsList' })
+  for (let s in setsPlans) {
+    ul.appendChild(elCom('li', { 
+      text: s,
+      'func': () => { console.log(s) } 
+    }))
+  }
+  return ul
+}
 
-  let output = document.getElementById('output')
-  output.innerHTML = ''
+const listsProps = () => {
+  let c = elCom('div', { id: 'thingsList' })
+  c.appendChild(addNewProp())
 
-  let locList = listsLocations()
-  output.appendChild(locList)
-
-  // const tst = JSON.stringify({ act: 'updateProp', prop: 'stick', address: 'actions.inv.bosh', value: 'do boshings' })
-  //  ajax(tst)
-
-  renderPropsList(output)
-  if (typeof prop == 'undefined') return
-
-  let e = document.createElement('div')
-  e.id = 'propAttribs'
-  e.className = 'propsEdit'
-
-  const fullPlan = window.chronicle.propsPlans[prop]    
-  //const metaData = infersMetaData(fullPlan)
-
-  const htmlAttrs = elementsFromObjects(fullPlan, e)
-
-  const t = renderProp(prop)
-
-  let md = elCom('div', { id: 'missingDefaults', classes: 'missingDefaults' } )
-  let mds = missingDefaults(window.chronicle.propsPlans[prop])
-  elementsFromObjects(mds, md, 'default')    
-
-  output.appendChild(t)
-  output.appendChild(htmlAttrs)
-  output.appendChild(md)
+  for (const p in window.chronicle.plans.props) {
+    let el = elCom('div', { id: p })
+    el.innerText = p
+    el.className = `button ${p}`
+    elAel(el, () => { edit(p) })
+    c.appendChild(el)
+  }
+  return c
 }
 
 const missingDefaults = (targetProp) => {
@@ -62,107 +87,19 @@ const missingDefaults = (targetProp) => {
   return missing
 }
 
-const renderProp = (prop) => {
-  let e = elCom('div', { id: 'prop' })
-  let t = elCom('span', { text: prop, classes: 'title' })
-  // t.innerText = prop
-  // t.className = 'title'
-  let i = elCom('textarea', { text: prop, classes: 'textareaLong' })
-  // i.className = 'textareaLong'
-  // i.innerText = prop
-
-  let a = renderButton('prop update', 'save', () => { newProp(i) })
-  let d = renderButton('prop delete', 'delete', () => { console.log(`delete prop ${prop}`) })
-
-  e.appendChild(t)
-  e.appendChild(i)
-  e.appendChild(a)
-  e.appendChild(d)
-
-  return e
-}
-
-const renderPropsList = (output) => {
-
-  let c = elCom('div', { id: 'thingsList' })
-  let e = elCom('div', { id: 'newProp' })
-  e.innerText = 'New Prop'
-  e.className = 'button'
-  elAel(e, () => { edit('new') })
-
-  c.appendChild(e)
-
-  for (const p in window.chronicle.propsPlans) {
-    let el = elCom('div', { id: p })
-    el.innerText = p
-    el.className = `button ${p}`
-    elAel(el, () => { edit(p) })
-    c.appendChild(el)
-  }
-
-  output.appendChild(c)
-}
-
-const infersMetaData = () => {
-  //console.log('infering')
-  let a = {}
-  let s = ''
-  let b = {}
-  const walk = (obj, a, s) => {
-    for (let k in obj) {
-    
-      if (typeof(obj[k]) == 'object' 
-        && !Array.isArray(obj[k]) 
-        && Object.keys(obj[k]).length !== 0) {
-
-        a[k] = obj[k]
-        s += `${k}.`
-
-        walk(obj[k], a[k], s)
-        s = s.substring(0, s.length - k.length - 2) 
-      } else {
-        let tpo = typeof obj[k]
-        if (Array.isArray(obj[k])) tpo = 'array'
-        let t = `${s}${k}`    
-        a[k] = tpo
-        b[t] = tpo
-      }
-    }
-  }
-  walk(defaultProp(), a, s)
-
-  //console.log('infers', b, a)
-  
-  return b
-}
-
-const elementsFromObjects = (object, el, isDefault) => {
-
-  if (isDefault == null) {
-    let na = elCom('div', {})
-    //na.innerText = 'New Attrib'
-    let s = elCom('span', { text: 'New Attrib' } )
-    let t= elCom('textarea', { id: 'newPropAttrib', classes: 'textareaShort' })
-    let b = renderButton('save', 'save', () => { newPropAttribute('newPropAttrib') })
-
-    el.appendChild(na)
-    na.appendChild(s)
-    na.appendChild(t)
-    na.appendChild(b)
-
-  }
-
+const elementsFromObjects = (object, el) => {
 
   const walk = (obj, ind, pa) => {
     let indClass = indentClass(ind)
     for (let k in obj) {
       if (typeof(obj[k]) == 'object' && !Array.isArray(obj[k])) {
-        nameLevelElement(el, k, pa, indClass)
+        el.appendChild(nameLevelElement(k, pa, indClass))
         walk(obj[k], ++ind, pa += `${k}.`)
         --ind
         pa = pa.replace(`${k}.`, '')
       } else {
-        valueLevelElement(el, obj, k, pa, indClass)
+        el.appendChild(valueLevelElement(obj, k, pa, indClass))
+        
       }
     }
   }
@@ -171,125 +108,131 @@ const elementsFromObjects = (object, el, isDefault) => {
   return el
 }
 
-const newPropAttribute = (elId) => {
-  let el = document.getElementById(elId)
-  if (el.value == '') return
-
-  const cmds = JSON.stringify({ 
-    act: 'newPropAttribute',
-    prop: window.chronicle.prop,
-    address: elId,
-    value: el.value
-  })
-  
-  ajax(cmds)
-  console.log('new Prop Attribute', elId, el.value)  
-}
-// or update exisiting atribute
-const savePropAttribute = (...data) => {
-  const prop = window.chronicle.prop
-  console.log('save prop attribute', data, prop)
-  
+const indentClass = (ind) => {
+  if (ind > 0) return `indent_${ind}`
+  return ''
 }
 
-// const addedAttribute = () => {
-
-// }
-
-// const deletedAttribute = () => {
-
-// }
-
-const newProp = (el) => {
-  const cmds = JSON.stringify({ act: 'newProp', prop:  el.value })
-  ajax(cmds)
-}
-
-const addedProp = (prop) => {
-  let output = document.getElementById('output')
-  output.innerHTML = ''
-  window.chronicle.propsPlans[prop] = {}
-  edit(prop)
-}
-
-const deletedProp = (prop) => {
-  let output = document.getElementById('output')
-  output.innerHTML = ''
-  window.chronicle.propsPlans[prop] = {}
-  edit(prop)
-}
-  
-
-const updateProp = (el, prop, address) => {
-  console.log(window.chronicle.meta, address)
-  let value = el.value
-  if (window.chronicle.meta[address] && window.chronicle.meta[address] == 'array') {
-
-    const a = value.split(',')
-    value = [`${a.join(`','`)}`]
-    console.log('meta found', value)
-    
-  }
-  
-  const cmds = JSON.stringify({ act: 'updateProp', prop: prop, address: address, value: value })
-  ajax(cmds)
-}
-
-const deleteProp = (el, prop, address) => {
-  const cmds = JSON.stringify({ act: 'deleteProp', prop: prop, address: address, value: el.value })
-  ajax(cmds)
-}
-
-const nameLevelElement = (el, k, pa, indClass) => {
-
-  // let s = document.createElement('span')
-  // s.innerText = k
-  // s.className = `title ${indClass}`
-
-  // let i = document.createElement('textarea')
-  // i.id = `${pa}${k}`
-  // i.className = 'textareaShort'
-
-  let s = elCom('span', { text: k, classes: `title ${indClass}` })
-  let ta = elCom('textarea', { id: `${pa}${k}`, classes: 'textareaShort' })
-  let sb = renderButton('save', 'save', () => savePropAttribute(`${pa}${k}`, ta.value))
-  let b = renderButton(`addPropAttribute ${pa}${k}`, 'add', () => { newPropAttribute(`${pa}${k}`) })
+const nameLevelElement = (name, address, indClass) => {
   let e = elCom('div', { classes: `attrib ${indClass}`})
-
-  e.appendChild(s)
-  e.appendChild(ta)
-  e.appendChild(sb)
-  e.appendChild(b)
-  el.appendChild(e)
+  const id = `${address}${name}`
+  e.appendChild(elCom('span', { text: name, classes: `title ${indClass}` }))
+  e.appendChild(elCom('textarea', { id: id, classes: 'textareaShort' }))
+  e.appendChild(renderObjectButtons({name: name, address: address, valueElId: id }))
+  return e
 }
 
-const valueLevelElement = (el, obj, k, pa, indClass) => {
-  let i = elCom('textarea', { id: `${pa}${k}`, classes: 'textareaLong' })
-  i.value = obj[k]  
+const renderObjectButtons = (cmds) => {
+  const address = `${cmds.address}${cmds.name}`
+  let btns = elCom('span', { classes: 'buttons' })
+  btns.appendChild(renderButton('save', 'save', () => {}))  
+  btns.appendChild(renderButton('delete', 'delete', () => {
+    deletePropAttribute({...cmds, address: address}) 
+  }))
+  btns.appendChild(renderButton('add', 'add', () => {}))  
+  return btns
+}
 
-  let s = document.createElement('span')
-  s.innerText = k
-  s.className = 'title'
-
-  let b = renderButton(`updateProp ${pa}${k}`, 'save', () => { updateProp(i, window.chronicle.prop, `${pa}${k}`) })
-  //elAel(b, () => { updateProp(i, window.chronicle.prop, `${pa}${k}`) })
-
-  let d = renderButton(`deleteProp ${pa}${k}`, 'delete', () => { deleteProp(i, window.chronicle.prop, `${pa}${k}`) })
-  //d.addEventListener('click', () => { deleteProp(i, window.chronicle.prop, `${pa}${k}`) })
-
+const valueLevelElement = (obj, name, address, indClass) => {
   let e = elCom('div', { classes: `attrb ${indClass}` })
+  const id = `${address}${name}`
+  e.appendChild(elCom('span', { text: 'v ' + name, classes: 'title' }))
+  e.appendChild(elCom('textarea', { id: id, classes: 'textareaLong', value: obj[name] }))
+  e.appendChild(renderValueButtons({name, address, valueElId: id }))
+  return e
+}
 
-  e.appendChild(s)
-  e.appendChild(i)
-  e.appendChild(b)
-  e.appendChild(d)
-  el.appendChild(e)
+const renderValueButtons = (cmds) => {
+  let btns = elCom('span')
+
+  btns.appendChild(renderButton('update', 'update', () => {
+    updateProp({
+      act: 'updateProp', 
+      address: `${cmds.address}${cmds.name}`,
+      value: document.getElementById(cmds.valueElId).value
+    })
+  }))
+
+  btns.appendChild(renderButton('delete', 'delete', () => {}))
+  return btns
+}
+
+
+
+const addNewProp = () => {
+  let e = elCom('div', { id: 'newProp' })
+  e.innerText = 'New Prop'
+  e.className = 'button'
+  elAel(e, () => { edit('new') })
+  return e
+}
+
+const addNewAttribute = () => {
+  const id = 'newPropAttribute'
+  let na = elCom('div', {})
+  let t= elCom('textarea', { id: id, classes: 'textareaShort' })
+  let b = renderButton('save', 'save', () => { 
+    updateProp({
+      act: 'updateProp', 
+      value: document.getElementById(id).value
+    })
+  })
+
+  na.appendChild(elCom('span', { text: 'New Attrib' } ))
+  na.appendChild(t)
+  na.appendChild(b)
+
+  return na
+}
+
+
+const updateProp = (cmds) => {
+  cmds.prop = window.chronicle.prop
+  ajax(JSON.stringify(cmds))
+
+  console.log('updateProp', cmds)
+  
+}
+
+// Delete an attribute which is an attribute container.
+const deletePropAttribute = (cmds) => {
+
+
+
+
+  cmds.prop = window.chronicle.prop
+  cmds.act = 'deletePropAttribute'
+
+  //cmds.address = 'barry.aaaaa'
+
+  addressDestructor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address)
+
+  console.log('update', window.chronicle.plans.propsUpdate.barry)
+  
+
+  //window.chronicle.plans.props[cmds.prop]
+
+  ajax(JSON.stringify(cmds)) 
+  console.log('deleteAttribute', cmds)
+  
+}
+
+const addressDestructor = (plans, address) => {
+  const [prime, genus, order] = address.split('.')
+  if (order) return delete(plans[prime][genus][order])
+  if (genus) return delete(plans[prime][genus])
+  if (prime) return delete(plans[prime])
+}
+
+// Delete an attribute which is a value container.
+const deletePropValue = () => {
+  
 }
 
 const renderButton = (cssClass, iconCode, func) => {
-  let icon = '💾' // add/update
-  if (iconCode == 'delete') icon = '🚽' // ➖ 🗑 ☠ 🚮
-  if (iconCode == 'add') icon = '➕' // ✅ 🉑 ❌ 
+  let icon = '💾' // save/update
+  if (iconCode == 'delete') icon = '➖' // delete 🚽 🗑 ☠ 🚮
+  if (iconCode == 'add') icon = '➕' // add ✅ 🉑 ❌ 
  
   let el = elCom('span', { 
     classes: `objButton ${cssClass}`, 
@@ -301,29 +244,13 @@ const renderButton = (cssClass, iconCode, func) => {
   return el
 }
 
-const indentClass = (ind) => {
-  if (ind > 0) return `indent_${ind}`
-  return ''
-}
-
-
-const listsLocations = () => {
-  let ul = elCom('ul', { id: 'setsList', classes: 'setsList' })
-  for (let s in setsPlans) {
-    ul.appendChild(elCom('li', { 
-      text: s,
-      'func': () => { console.log(s) } 
-    }))
-  }
-  return ul
-}
-
 const elCom = (elType, cmds) => {
   let el = document.createElement(elType)
   if (!cmds) return el
   if (cmds.id) el.id = cmds.id
   if (cmds.classes) el.className = cmds.classes
   if (cmds.text) el.innerText = cmds.text
+  if (cmds.value) el.value = cmds.value
   if (cmds.func) elAel(el, cmds.func, cmds.act )
 
   return el
@@ -339,14 +266,26 @@ const ajax = (cmds) => {
   xhr.onreadystatechange = () => {
     if(xhr.readyState === 4 && xhr.status === 200) {
       console.log('xhr: 200', xhr.responseText)
-      console.log('pps', window.chronicle.propsPlans)
+      console.log('pps', window.chronicle.plans.props)
       
       let data = JSON.parse(xhr.responseText)
 
-      console.log(data)
+      console.log('server data', data)
 
-      if (data.act == 'addedProp') addedProp(data.prop)
-      if (data.act == 'deletedProp') deletedProp(data.prop)
+      //if (data.act == 'addedProp') addedProp(data.prop)
+      //if (data.act == 'deletedProp') deletedProp(data.prop)
+
+      
+      // let output = document.getElementById('output')
+      // output.innerHTML = ''
+      // window.chronicle.plans.props[data.prop] = {}
+      // //edit(prop)
+      // edit(data.prop)
+
+      if (data.act == 'deletedPropAttribute') {
+        window.chronicle.plans.props = window.chronicle.plans.propsUpdate
+        edit(data.prop)
+      }
       
 
     }
