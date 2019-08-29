@@ -12,7 +12,8 @@
       "propsPlans": "readonly",
       "prop": "writable",
       "setsPlans": "readonly",
-      "set": "writable"
+      "set": "writable",
+      "defaultProp": "readonly"
     },
     "rules": {
         "indent": [
