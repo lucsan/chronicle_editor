@@ -80,7 +80,7 @@ exports.main = (cmds, responder) => {
 
   const deletePropAttribute = (prop, address) => {
     console.log('delete Prop Attribute')
-    adressDestructor(global.plans.props[prop], address)
+    addressDestructor(global.plans.props[prop], address)
     return { act: 'deletedPropAttribute', prop: prop, address: address }    
   }
 
@@ -89,7 +89,7 @@ exports.main = (cmds, responder) => {
     return { act: 'updatedPropAttribute', prop: prop, address: address, value: value }
   }
 
-  const adressDestructor = (plans, address) => {
+  const addressDestructor = (plans, address) => {
     const [prime, genus, order] = address.split('.')
     if (order) return delete(plans[prime][genus][order])
     if (genus) return delete(plans[prime][genus])

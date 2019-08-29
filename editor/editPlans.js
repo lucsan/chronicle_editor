@@ -75,6 +75,33 @@ const listsProps = () => {
   return c
 }
 
+const addNewProp = () => {
+  let e = elCom('div', { id: 'newProp' })
+  e.innerText = 'New Prop'
+  e.className = 'button'
+  elAel(e, () => { edit('new') })
+  return e
+}
+
+const addNewAttribute = () => {
+  const id = 'newPropAttribute'
+  let na = elCom('div', {})
+  let t= elCom('textarea', { id: id, classes: 'textareaShort' })
+  let b = renderButton('save', 'save', () => { 
+    updateProp({
+      act: 'updateProp',
+      address: document.getElementById(id).value,
+      value: {}
+    })
+  })
+
+  na.appendChild(elCom('span', { text: 'New Attrib' } ))
+  na.appendChild(t)
+  na.appendChild(b)
+
+  return na
+}
+
 const missingDefaults = (targetProp) => {
   let missing = []
   const dp = defaultProp()
@@ -122,17 +149,6 @@ const nameLevelElement = (name, address, indClass) => {
   return e
 }
 
-const renderObjectButtons = (cmds) => {
-  const address = `${cmds.address}${cmds.name}`
-  let btns = elCom('span', { classes: 'buttons' })
-  btns.appendChild(renderButton('save', 'save', () => {}))  
-  btns.appendChild(renderButton('delete', 'delete', () => {
-    deletePropAttribute({...cmds, address: address}) 
-  }))
-  btns.appendChild(renderButton('add', 'add', () => {}))  
-  return btns
-}
-
 const valueLevelElement = (obj, name, address, indClass) => {
   let e = elCom('div', { classes: `attrb ${indClass}` })
   const id = `${address}${name}`
@@ -142,78 +158,81 @@ const valueLevelElement = (obj, name, address, indClass) => {
   return e
 }
 
+const renderObjectButtons = (cmds) => {
+  const address = `${cmds.address}${cmds.name}`
+  let btns = elCom('span', { classes: 'buttons' })
+  btns.appendChild(renderButton('save', 'save', () => {
+    updatePropValue({ ...cmds, value: document.getElementById(cmds.valueElId).value })
+  }))  
+  btns.appendChild(renderButton('delete', 'delete', () => {
+    deletePropAttribute({ ...cmds, address: address }) 
+  }))
+  const addressItems = address.split('.')
+  if (addressItems.length < 3) {
+    btns.appendChild(renderButton('add', 'add', () => {
+      addPropAttribute({ ...cmds, value: document.getElementById(cmds.valueElId).value })
+    }))  
+  }
+  return btns
+}
+
 const renderValueButtons = (cmds) => {
+  const address = `${cmds.address}${cmds.name}`
   let btns = elCom('span')
 
   btns.appendChild(renderButton('update', 'update', () => {
     updateProp({
       act: 'updateProp', 
-      address: `${cmds.address}${cmds.name}`,
+      address: address,
       value: document.getElementById(cmds.valueElId).value
     })
   }))
 
-  btns.appendChild(renderButton('delete', 'delete', () => {}))
+  btns.appendChild(renderButton('delete', 'delete', () => {
+    deletePropAttribute({ ...cmds, address: address, value: document.getElementById(cmds.valueElId).value })
+  }))
   return btns
 }
 
-
-
-const addNewProp = () => {
-  let e = elCom('div', { id: 'newProp' })
-  e.innerText = 'New Prop'
-  e.className = 'button'
-  elAel(e, () => { edit('new') })
-  return e
+const updatePropValue = (cmds) => {
+  cmds.act = 'updateProp'
+  cmds.address = `${cmds.address}${cmds.name}`
+  updateProp(cmds)
+  console.log('updatePropValue', cmds)
+  
 }
-
-const addNewAttribute = () => {
-  const id = 'newPropAttribute'
-  let na = elCom('div', {})
-  let t= elCom('textarea', { id: id, classes: 'textareaShort' })
-  let b = renderButton('save', 'save', () => { 
-    updateProp({
-      act: 'updateProp', 
-      value: document.getElementById(id).value
-    })
-  })
-
-  na.appendChild(elCom('span', { text: 'New Attrib' } ))
-  na.appendChild(t)
-  na.appendChild(b)
-
-  return na
-}
-
 
 const updateProp = (cmds) => {
   cmds.prop = window.chronicle.prop
+  addressAddressor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address, cmds.value)
   ajax(JSON.stringify(cmds))
-
   console.log('updateProp', cmds)
-  
+}
+
+const addPropAttribute = (cmds) => {
+  cmds.prop = window.chronicle.prop
+  cmds.address = `${cmds.address}${cmds.name}.${cmds.value}`
+  cmds.value = {}
+  cmds.act = 'updateProp'
+  addressAddressor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address, cmds.value)
+  ajax(JSON.stringify(cmds))
+  console.log('addPropAttribute', cmds)  
 }
 
 // Delete an attribute which is an attribute container.
 const deletePropAttribute = (cmds) => {
-
-
-
-
   cmds.prop = window.chronicle.prop
   cmds.act = 'deletePropAttribute'
-
-  //cmds.address = 'barry.aaaaa'
-
   addressDestructor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address)
-
-  console.log('update', window.chronicle.plans.propsUpdate.barry)
-  
-
-  //window.chronicle.plans.props[cmds.prop]
-
   ajax(JSON.stringify(cmds)) 
   console.log('deleteAttribute', cmds)
+}
+
+// Delete an attribute which is a value container.
+const deletePropValue = (cmds) => {
+
+  console.log('deletePropValue', cmds)
+  
   
 }
 
@@ -224,9 +243,15 @@ const addressDestructor = (plans, address) => {
   if (prime) return delete(plans[prime])
 }
 
-// Delete an attribute which is a value container.
-const deletePropValue = () => {
-  
+const addressAddressor = (plans, address, value) => {
+  const [prime, genus, order] = address.split('.')
+  let v = null
+  typeof value == 'object' && !Array.isArray(value)? v = {...value}: v = value 
+  if (prime && !plans[prime]) { plans[prime] = {} }
+  if (genus && !plans[prime][genus]) { plans[prime][genus] = {} }
+  if (order) return plans[prime][genus][order] = v
+  if (genus) return plans[prime][genus] = v
+  if (prime) return plans[prime] = v
 }
 
 const renderButton = (cssClass, iconCode, func) => {
@@ -282,7 +307,9 @@ const ajax = (cmds) => {
       // //edit(prop)
       // edit(data.prop)
 
-      if (data.act == 'deletedPropAttribute') {
+      if (!data.error) {
+        console.log(window.chronicle.plans.propsUpdate)
+        
         window.chronicle.plans.props = window.chronicle.plans.propsUpdate
         edit(data.prop)
       }
