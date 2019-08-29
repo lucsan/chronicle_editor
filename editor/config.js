@@ -1,4 +1,3 @@
-
 const config = () => {
   return {
     port: '8888',
@@ -8,34 +7,13 @@ const config = () => {
 
     plans: {
       props: {
-        target: 'editor/plans/propsStub1.js',
-        source: 'editor/plans/propsStub1.js' 
+        target: 'editor/plans/propsStub.js',
+        source: 'editor/plans/propsStub.js' 
       },
       sets: {}
     }
   }
 
-
-    // propsPlans: {
-    //   use: {
-    //     target: '',
-    //     source: ''        
-    //   },
-    //   work: {
-    //     target: 'editor/plans/propsStub1.js',
-    //     source: 'editor/plans/propsStub1.js'        
-    //   },
-    //   test: {
-    //     target: 'editor/plans/testProps.js',
-    //     source: 'editor/plans/testProps.js'        
-    //   },
-    // },
-    // setsPlans: {}  
-
-  // return {
-  //   defaultProps: 'editor/plans/propsPlans.js',
-  //   defaultSets: 'editor/plans/SetsPlans.js'
-  // }
 }
 
 exports.config = config

@@ -1,42 +1,27 @@
 const propsPlans = {
-  default: {
-    artist: '',
-    desc: '',
-    loc: '',
-    locs: [''],
-    pickUp: false,
-    hit: true,
-    strikes: false,
-  },
-
   stick: {
     desc: '🌲 &#1F332; a nice stick',
-    locs: ['clearing','creepyWoods'],
+    locs: ['clearing', 'creepyWoods'],
     artist: 'lucsan',
+    pickUp: true,
     actions: {
+      // TODO synonyms for pick up? remove, get, take.
       env: {
+        kick: () => { propActions().kick('stick') },
       },
       inv: {
-        bosh: 'do boshings',
+        destroy: () => {},
       },
       bod: {
         hit: () => {console.log('you hit') },
         poke: () => {console.log(`you poke`) },
       },
-      gut: {
-      },
-    },
-    properties: {
-      attack: 2,
-      defense: 0,
-      weight: 2,
-      poking: true,
+      gut: {},
     },
   },
-
   gnome: {
-    desc: 'a nice gnome',
-    locs: ['clearing','brewery','toilet'],
+    desc: "a nice gnome",
+    locs: ['clearing', 'brewery', 'toilet'],
     actions: {
       env: {
         speak: () => { actions().msg('ha ha ha, he he he, I\'m a little gnome and you can\'t catch me') },
@@ -47,7 +32,7 @@ const propsPlans = {
 
   washingSoda: {
     desc: 'A tin of sodium carbonate.',
-    locs: ['testSite','lab'],
-  },
+    locs: ['testSite', 'lab'],
+  }
 
 }
