@@ -7,8 +7,8 @@ const config = () => {
 
     plans: {
       props: {
-        target: 'editor/plans/propsStub.js',
-        source: 'editor/plans/propsStub.js' 
+        target: 'editor/plans/propsBuild.js',
+        source: 'editor/plans/propsBuild.js' 
       },
       sets: {}
     }

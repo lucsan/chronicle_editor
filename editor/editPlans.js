@@ -87,13 +87,7 @@ const addNewAttribute = () => {
   const id = 'newPropAttribute'
   let na = elCom('div', {})
   let t= elCom('textarea', { id: id, classes: 'textareaShort' })
-  let b = renderButton('save', 'save', () => { 
-    updateProp({
-      act: 'updateProp',
-      address: document.getElementById(id).value,
-      value: {}
-    })
-  })
+  let b = renderButton('add', 'add', () => { updateProp({ act: 'add', valueElId: id }) })
 
   na.appendChild(elCom('span', { text: 'New Attrib' } ))
   na.appendChild(t)
@@ -152,7 +146,7 @@ const nameLevelElement = (name, address, indClass) => {
 const valueLevelElement = (obj, name, address, indClass) => {
   let e = elCom('div', { classes: `attrb ${indClass}` })
   const id = `${address}${name}`
-  e.appendChild(elCom('span', { text: 'v ' + name, classes: 'title' }))
+  e.appendChild(elCom('span', { text: '*' + name, classes: 'title' }))
   e.appendChild(elCom('textarea', { id: id, classes: 'textareaLong', value: obj[name] }))
   e.appendChild(renderValueButtons({name, address, valueElId: id }))
   return e
@@ -161,32 +155,26 @@ const valueLevelElement = (obj, name, address, indClass) => {
 const renderObjectButtons = (cmds) => {
   const address = `${cmds.address}${cmds.name}`
   let btns = elCom('span', { classes: 'buttons' })
-  btns.appendChild(renderButton('save', 'save', () => {
-    updatePropValue({ ...cmds, value: document.getElementById(cmds.valueElId).value })
-  }))  
+
+  const addressItems = address.split('.')
+  if (addressItems.length < 3) {
+    btns.appendChild(renderButton('add', 'add', () => { prepAndPostPropValues({ ...cmds, act: 'add' }) }))  
+  }
+
+  btns.appendChild(renderButton('update', 'update', () => { prepAndPostPropValues(cmds) }))  
+
   btns.appendChild(renderButton('delete', 'delete', () => {
     deletePropAttribute({ ...cmds, address: address }) 
   }))
-  const addressItems = address.split('.')
-  if (addressItems.length < 3) {
-    btns.appendChild(renderButton('add', 'add', () => {
-      addPropAttribute({ ...cmds, value: document.getElementById(cmds.valueElId).value })
-    }))  
-  }
+
+
   return btns
 }
 
 const renderValueButtons = (cmds) => {
   const address = `${cmds.address}${cmds.name}`
   let btns = elCom('span')
-
-  btns.appendChild(renderButton('update', 'update', () => {
-    updateProp({
-      act: 'updateProp', 
-      address: address,
-      value: document.getElementById(cmds.valueElId).value
-    })
-  }))
+  btns.appendChild(renderButton('update', 'update', () => { prepAndPostPropValues(cmds) }))
 
   btns.appendChild(renderButton('delete', 'delete', () => {
     deletePropAttribute({ ...cmds, address: address, value: document.getElementById(cmds.valueElId).value })
@@ -194,30 +182,90 @@ const renderValueButtons = (cmds) => {
   return btns
 }
 
-const updatePropValue = (cmds) => {
-  cmds.act = 'updateProp'
-  cmds.address = `${cmds.address}${cmds.name}`
-  updateProp(cmds)
-  console.log('updatePropValue', cmds)
+const prepAndPostPropValues = (cmds, action) => {
+  // console.log('recievedValues', {...cmds}, action)
+
+  let { name, address, valueElId, act } = cmds
+  let value = document.getElementById(valueElId).value 
+
+  const obj = makeAddress({ address, name, value, act })
+  if (action) { 
+    obj.act = action
+  } else {
+    obj.act = 'updateProp'
+  }
+  obj.prop = window.chronicle.prop  
+
+  console.log('obj', obj)  
+
+  addressAddressor(window.chronicle.plans.propsUpdate[obj.prop], obj.address, obj.value)
+ 
+  ajax(JSON.stringify(obj))
+  // return obj
+}
+
+const makeAddress = (data) => {
+  let obj = {}
+  if (data.address == null || data.address == '') {
+    if (data.name == null || data.name == '') {
+      obj.address = data.value
+      obj.value = {}
+      return obj
+    }
+
+    if (data.act == 'add') {
+      obj.address = `${data.name}.${data.value}`
+      obj.value = {}
+    } else {
+      obj.address = data.name
+      obj.value = data.value
+    }
+
+    return obj
+  }
+
+  obj.address = `${data.address}${data.name}`
+  if (data.act == 'add') {
+    obj.address += `.${data.value}`
+    obj.value = {}
+    return obj
+  }
+  obj.value = data.value
+  return obj
+}
+
+
+
+// const updateProp = (cmds) => {
+//   cmds = prepAndPostPropValues(cmds, 'updateProp')
+//   // cmds.prop = window.chronicle.prop
+//   // addressAddressor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address, cmds.value)
+//   // ajax(JSON.stringify(cmds))
+//   console.log('updateProp', cmds)
+// }
+
+// const updatePropValue = (cmds) => {
+//   cmds = prepAndPostPropValues(cmds,'updateProp')
+//   // cmds.act = 'updateProp'
+//   // cmds.address = `${cmds.address}${cmds.name}`
+//   //updateProp(cmds)
+
+//   //ajax(JSON.stringify(cmds))
+//   console.log('updatePropValue', cmds)
   
-}
+// }
 
-const updateProp = (cmds) => {
-  cmds.prop = window.chronicle.prop
-  addressAddressor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address, cmds.value)
-  ajax(JSON.stringify(cmds))
-  console.log('updateProp', cmds)
-}
 
-const addPropAttribute = (cmds) => {
-  cmds.prop = window.chronicle.prop
-  cmds.address = `${cmds.address}${cmds.name}.${cmds.value}`
-  cmds.value = {}
-  cmds.act = 'updateProp'
-  addressAddressor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address, cmds.value)
-  ajax(JSON.stringify(cmds))
-  console.log('addPropAttribute', cmds)  
-}
+// const addPropAttribute = (cmds) => {
+//   cmds = prepAndPostPropValues(cmds,'updateProp')
+//   // cmds.prop = window.chronicle.prop
+//   // cmds.address = `${cmds.address}${cmds.name}.${cmds.value}`
+//   // cmds.value = {}
+//   // cmds.act = 'updateProp'
+//   // addressAddressor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address, cmds.value)
+//   // ajax(JSON.stringify(cmds))
+//   console.log('addPropAttribute', cmds)  
+// }
 
 // Delete an attribute which is an attribute container.
 const deletePropAttribute = (cmds) => {
@@ -225,15 +273,7 @@ const deletePropAttribute = (cmds) => {
   cmds.act = 'deletePropAttribute'
   addressDestructor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address)
   ajax(JSON.stringify(cmds)) 
-  console.log('deleteAttribute', cmds)
-}
-
-// Delete an attribute which is a value container.
-const deletePropValue = (cmds) => {
-
-  console.log('deletePropValue', cmds)
-  
-  
+  // console.log('deleteAttribute', cmds)
 }
 
 const addressDestructor = (plans, address) => {
@@ -290,22 +330,12 @@ const ajax = (cmds) => {
   let xhr = new XMLHttpRequest()
   xhr.onreadystatechange = () => {
     if(xhr.readyState === 4 && xhr.status === 200) {
-      console.log('xhr: 200', xhr.responseText)
-      console.log('pps', window.chronicle.plans.props)
+      // console.log('xhr: 200', xhr.responseText)
+      // console.log('pps', window.chronicle.plans.props)
       
       let data = JSON.parse(xhr.responseText)
 
-      console.log('server data', data)
-
-      //if (data.act == 'addedProp') addedProp(data.prop)
-      //if (data.act == 'deletedProp') deletedProp(data.prop)
-
-      
-      // let output = document.getElementById('output')
-      // output.innerHTML = ''
-      // window.chronicle.plans.props[data.prop] = {}
-      // //edit(prop)
-      // edit(data.prop)
+      // console.log('server data', data)
 
       if (!data.error) {
         console.log(window.chronicle.plans.propsUpdate)
@@ -313,12 +343,8 @@ const ajax = (cmds) => {
         window.chronicle.plans.props = window.chronicle.plans.propsUpdate
         edit(data.prop)
       }
-      
-
     }
     //console.log('xhr:', xhr.responseText)
-
-    
   }
   xhr.open('POST', 'http://localhost:8888/save/prop', true)
   xhr.send(cmds)
