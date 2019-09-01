@@ -2,15 +2,21 @@ const config = () => {
   return {
     port: '8888',
     root: 'editor',
+    public: 'public',
     index: 'public/editor.html',
     autoLoad: false,
 
     plans: {
       props: {
-        target: 'editor/plans/propsBuild.js',
-        source: 'editor/plans/propsBuild.js' 
+        target: 'editor/plans/propsPlans.js',
+        source: 'editor/plans/propsPlans.js',
+        temp: 'editor/plans/propsTemp.js'
       },
-      sets: {}
+      sets: {
+        target: 'editor/plans/setsPlans.js',
+        source: 'editor/plans/setsPlans.js',     
+        temp: 'editor/plans/setsTemp.js'     
+      }
     }
   }
 

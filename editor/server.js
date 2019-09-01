@@ -16,6 +16,7 @@ const respond = (response) => {
 }
 
 function start () {
+  svt.main({ act: 'setup' }).setup()
   http.createServer(onRequest).listen(config.port)
   function onRequest(request, response) {
     const responder = respond(response)
@@ -34,7 +35,7 @@ exports.respond = respond
 
 start()
 
-// 📝 THe Following code is configured for win10 default browser.
+// 📝 The Following code is configured for win10 default browser.
 if (config.autoLoad) require('child_process').exec(`start http://localhost:${config.port}`)
 
 console.log(`Server running @ http://localhost:${config.port}, Auto browser loading: ${config.autoLoad}`)

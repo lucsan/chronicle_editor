@@ -53,7 +53,7 @@ describe('servitor', () => {
   })
 
   it('should make a new prop', () => {
-    svt.main(
+    let x = svt.main(
       {
         test: true, 
         act: 'newProp', 
@@ -61,7 +61,8 @@ describe('servitor', () => {
       }, 
       responder, 
     )
-
+      console.log(x)
+      
     expect(typeof gpp[tObj.prop]).toBe('object')
   })
 
@@ -134,6 +135,21 @@ describe('servitor', () => {
       responder
     )
     expect(gpp.pinkPonk.properties.fibble.leron).toBe(undefined)
+  })
+
+  it('should write a browser js config file (ie: common config)', () => {
+    svt.main({ test: true, act: 'createBrowserConfig' })
+    // svt.main({ test: true, act: 'test' }).createBrowserConfig()
+    expect(2).toBe(2)
+    expect(2).toBe(2)
+  })
+
+  it('should create editable plans', () => {
+    svt.main({ test: true, act: 'createEditPlans' })
+    // svt.main({ test: true, act: 'test' }).createEditPlans()
+
+    
+    expect(1).toBe(2)
   })
 
 

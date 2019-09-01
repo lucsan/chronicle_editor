@@ -2,6 +2,7 @@ exports.main = (cmds, responder) => {
   const ckr = require('./checker.js')
   const fs = require('fs')
   const config = require('./config.js').config()
+  const configPath = 'editor/config.js'
 
   const updateProp = (cmds, responder) => {
     
@@ -10,7 +11,8 @@ exports.main = (cmds, responder) => {
     
     if (!cmds.test) {
       const fileText = makePropsPlansFile()
-      fs.writeFileSync(config.plans.props.target, fileText)      
+      // fs.writeFileSync(target, fileText)      
+      fs.writeFileSync(config.plans.props.temp, fileText)      
     }
 
     // const params = JSON.stringify({ act: 'updatedProp', prop: cmds.prop, address: cmds.address })
@@ -150,32 +152,51 @@ exports.main = (cmds, responder) => {
     }
     return walk(plans, '', '', 1)
   }
+
+  const createEditPlans = () => {
+    console.log('creating edit plans')
+    
+    const pp = fs.readFileSync(config.plans.props.source, 'utf-8')
+    fs.writeFileSync(config.plans.props.temp, pp.replace('const', 'let'))
+
+    const sp = fs.readFileSync(config.plans.sets.source, 'utf-8')
+    fs.writeFileSync(config.plans.sets.temp, sp.replace('const', 'let'))
+  }
+
+  const createBrowserConfig = () => {
+    const cf = fs.readFileSync(configPath, 'utf-8')
+    const bcf = cf.replace('exports.config = config', '')
+    fs.writeFileSync(`${config.root}/${config.public}/config.js`, bcf)
+  }
   
-
   const setup = () => {
-  //if (typeof responder == 'undefined') responder = (response, cmds, mimeType) => { console.log('No responder - data: ', cmds) }
-
+    createBrowserConfig()
     if (typeof global.plans == 'undefined' || typeof global.plans.props == 'undefined') { 
-      ckr.readJsVar(config.plans.props.source)
+      createEditPlans()
+      ckr.readJsVar(config.plans.props.temp)
       global.plans = {}
       global.plans.props = propsPlans
     }
-
-    // console.log('source', config.plans.props.source)
-    // console.log('target', config.propsPlans.use.target)
-
-    if (cmds.act == 'newProp') return updateProp(cmds, responder) 
-    if (cmds.act == 'updateProp') return updateProp(cmds, responder)
-    if (cmds.act == 'deleteProp') return updateProp(cmds, responder)       
-    if (cmds.act == 'newPropAttribute') return updateProp(cmds, responder)    
-    if (cmds.act == 'deletePropAttribute') return updateProp(cmds, responder)    
-
-
-    console.log('Unknown act: cmds ', cmds)  
-    
   }
 
+  //TODO: refactor these down to all use act == prop
+  if (cmds.act == 'prop') return updateProp(cmds, responder) 
+ 
+  if (cmds.act == 'newProp') return updateProp(cmds, responder)
+  if (cmds.act == 'updateProp') return updateProp(cmds, responder)
+  if (cmds.act == 'deleteProp') return updateProp(cmds, responder)       
+  if (cmds.act == 'newPropAttribute') return updateProp(cmds, responder)    
+  if (cmds.act == 'deletePropAttribute') return updateProp(cmds, responder)
 
-  setup()
+  if (cmds.act == 'createBrowserConfig') return createBrowserConfig()
+  if (cmds.act == 'createEditPlans') return createEditPlans()
 
+  console.log('Unknown act: cmds ', cmds)    
+
+  return {
+    setup
+  }
 }
+
+
+
