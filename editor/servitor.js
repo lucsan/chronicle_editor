@@ -4,28 +4,6 @@ exports.main = (cmds, responder) => {
   const config = require('./config.js').config()
   const configPath = 'editor/config.js'
 
-  const updateProp = (cmds, responder) => {
-    
-    const udSel = updatePropSelector(cmds)
-    if (udSel.error) return responder(JSON.stringify(udSel.error), 'text/html')
-    
-    if (!cmds.test) {
-      const fileText = makePropsPlansFile()
-      // fs.writeFileSync(target, fileText)      
-      fs.writeFileSync(config.plans.props.temp, fileText)      
-    }
-
-    // const params = JSON.stringify({ act: 'updatedProp', prop: cmds.prop, address: cmds.address })
-    //console.log('udSel', udSel)
-   console.log('udsel', udSel)
-    
-    const params = JSON.stringify(udSel)
-
-    responder(params, 'text/html')
-
-    //global.chronicle.save = `updated props ${cmds.prop} ${cmds.address}`
-  }
-
 
   const updateItem = (cmds, responder) => {
     const udSel = updateSelector(cmds)
@@ -33,23 +11,12 @@ exports.main = (cmds, responder) => {
 
     if (!cmds.test) { makePlansFile(cmds.is) }
 
-    console.log('udsel', udSel)
+    //console.log('udsel', udSel)
 
     responder(JSON.stringify(udSel), 'text/html')
   }
 
-  const makePlansFile = (isType) => {
-    if (isType == 'prop') {
-      return fs.writeFileSync(config.plans.props.temp, makePropsPlansFile(global.plans.props, 'let'))
-    }
-    if (isType == 'set') {
-      return fs.writeFileSync(config.plans.sets.temp, makeSetsPlansFile(global.plans.sets, 'let'))
-    }
-  }
-
-
   const updateSelector = (cmds) => {
-    console.log('us', cmds)
     const { act, prop, set, address, value } = cmds
     
     let plans = {}
@@ -68,11 +35,23 @@ exports.main = (cmds, responder) => {
     }
 
     if (act == 'add' && item == 'new') return newItem(plans, address, cmds.is)
-    if (act == 'add' && item && address) return newAttribute(plans, item, address, cmds.is )
-
-
-    return { error: 'dev upSel' }
+    if (act == 'delete' && item && !address) return deleteItem(plans, item, cmds.is)
+        
+    if (act == 'add' && item && address) return updateAttribute(plans, item, address, {}, cmds.is )
+    if (act == 'update' && item && address && value) return updateAttribute(plans, item, address, value, cmds.is)    
+    if (act == 'delete' && item && address) return deleteAttribute(plans, item, address, cmds.is)
+ 
+    return { error: 'dev upSel', data: cmds }
     
+  }
+
+  const makePlansFile = (isType) => {
+    if (isType == 'prop') {
+      return fs.writeFileSync(config.plans.props.temp, makePropsPlansFile(global.plans.props, 'let'))
+    }
+    if (isType == 'set') {
+      return fs.writeFileSync(config.plans.sets.temp, makeSetsPlansFile(global.plans.sets, 'let'))
+    }
   }
 
   const newItem = (plans, name, isType) => {
@@ -81,75 +60,73 @@ exports.main = (cmds, responder) => {
     return { act: 'added', [`${isType}`]: name } 
   }
 
-  const newAttribute = (plans, item, address, isType) => {
-    if (plans[item][address]) return { act: `new${isType}Attribute`, error: `${isType} ${address} exists.` }
-    plans[item][address] = null
-    return { act: `addedAttribute`, [`${isType}`]: item, address }
+  const updateAttribute = (plans, item, address, value, isType) => {
+    addressAddressor(address, plans[item], value)
+    return { act: 'updatedAttribute', [isType]: item, address, value }
   }
 
-  
-  const newPropAttribute = (prop, value) => {
-    if (global.plans.props[prop][value]) return { act: 'newPropAttribute', error: `prop ${prop} attrib ${value} exists.` }
-    global.plans.props[prop][value] = null
-    return { act: 'addedPropAttribute', prop: prop, address: value }    
+  const deleteItem = (plans, item, isType) => {
+    delete(plans[item])
+    return { act: 'deletedItem', [isType]: item }
   }
 
-  // const newProp = (prop) => {
-  //   if (global.plans.props[prop]) return { act: 'newProp', error: `prop ${prop} exists.` }
-  //   global.plans.props[prop] = {}
-  //   return { act: 'addedProp', prop: prop }
+  const deleteAttribute = (plans, item, address, isType) => {
+    addressDestructor(plans[item], address)
+    return { act: 'deletedAttribute', [isType]: item, address }
+  }
+
+  // const deleteProp = (prop) => {
+  //   delete(global.plans.props[prop])
+  //   return { error: 'dev delPro', act: 'deleteProp' }
   // }
 
-  const updatePropSelector = (cmds) => {
-    const {
-      act,
-      prop,
-      oldProp,
-      address,
-      value
-    } = cmds
+  // const deletePropAttribute = (prop, address) => {
+  //   console.log('delete Prop Attribute')
+  //   addressDestructor(global.plans.props[prop], address)
+  //   return { act: 'deletedPropAttribute', prop: prop, address: address }    
+  // }
 
-    if (act == 'deleteProp') { return deleteProp(prop) }
-    if (act == 'deletePropAttribute') { return deletePropAttribute(prop, address) }
-
-    if (!cmds.value && cmds.value != 'new') return { act: cmds.act, error: `no value given` }
-
-    if (!prop && !address) { return newProp(value) }
-    if (prop && !address)  { return newPropAttribute(prop, value) }
-    if (prop && address)   { return updatePropAttribute(prop, address, value) }
-
-    
-    console.log('cmds', cmds)
-    
-    return { error: 'dev upSel' }
-    
-  }
-
-
-
-
-  const deleteProp = (prop) => {
-    delete(global.plans.props[prop])
-    return { error: 'dev delPro', act: 'deleteProp' }
-  }
-
-  const deletePropAttribute = (prop, address) => {
-    console.log('delete Prop Attribute')
-    addressDestructor(global.plans.props[prop], address)
-    return { act: 'deletedPropAttribute', prop: prop, address: address }    
-  }
-
-  const updatePropAttribute = (prop, address, value) => {
-    addressAddressor(global.plans.props[prop], address, value)
-    return { act: 'updatedPropAttribute', prop: prop, address: address, value: value }
-  }
+  // const updatePropAttribute = (prop, address, value) => {
+  //   addressAddressor(global.plans.props[prop], address, value)
+  //   return { act: 'updatedPropAttribute', prop: prop, address: address, value: value }
+  // }
 
   const addressDestructor = (plans, address) => {
+    const [one, two, thr, fou, fiv] = address.split('.')
+    if (fiv) return delete(plans[one][two][thr][fou][fiv])
+    if (fou) return delete(plans[one][two][thr][fou])
+    if (thr) return delete(plans[one][two][thr])
+    if (two) return delete(plans[one][two])
+    if (one) return delete(plans[one])
+  }
+
+  const addressDestructor1 = (plans, address) => {
     const [prime, genus, order] = address.split('.')
     if (order) return delete(plans[prime][genus][order])
     if (genus) return delete(plans[prime][genus])
     if (prime) return delete(plans[prime])
   }
+
+
+
+  const addressAddressor = (address, plans, value) => {
+    const [one, two, thr, fou, fiv] = address.split('.')
+     let v = null
+    typeof value == 'object' && !Array.isArray(value)? v = {...value}: v = value 
+
+    if (one && !plans[one]) plans[one] = {}
+    if (two && !plans[one][two]) plans[one][two] = {}
+    if (thr && !plans[one][two][thr]) plans[one][two][thr] = {}
+    if (fou && !plans[one][two][thr][fou]) plans[one][two][thr][fou] = {}
+    if (fiv && !plans[one][two][thr][fou][fiv]) plans[one][two][thr][fou][fiv] = {}
+
+    if (fiv) return plans[one][two][thr][fou][fiv] = v
+    if (fou) return plans[one][two][thr][fou] = v
+    if (thr) return plans[one][two][thr] = v
+    if (two) return plans[one][two] = v
+    if (one) return plans[one] = v
+  }
+
 
   /* Rules:
    * An address can be upto 3 items (a.b.c)
@@ -158,7 +135,7 @@ exports.main = (cmds, responder) => {
    * if a place does not exist, will make one
    * returns nothing as it mutates the plans object
   */
-  const addressAddressor = (plans, address, value) => {
+  const addressAddressor1 = (plans, address, value) => {
     const [prime, genus, order] = address.split('.')
     let v = null
     typeof value == 'object' && !Array.isArray(value)? v = {...value}: v = value 
@@ -273,18 +250,7 @@ exports.main = (cmds, responder) => {
 
   }
 
-  //console.log('plans', global.plans)
-
-  //TODO: refactor these down to all use act == prop
-  // if (cmds.act == 'prop') return updateProp(cmds, responder) 
- 
-  //if (cmds.act == 'newProp') return updateProp(cmds, responder)
-  // if (cmds.act == 'updateProp') return updateProp(cmds, responder)
-  // if (cmds.act == 'deleteProp') return updateProp(cmds, responder)       
-  // if (cmds.act == 'newPropAttribute') return updateProp(cmds, responder)    
-  // if (cmds.act == 'deletePropAttribute') return updateProp(cmds, responder)
-
-  console.log('cmds', cmds)
+  //console.log('cmds', cmds)
 
   if (cmds.prop || cmds.set) { return updateItem(cmds, responder) }
 
@@ -296,9 +262,71 @@ exports.main = (cmds, responder) => {
 
   return {
     setup,
-    plansToStringWalker
+    updateSelector,
+    plansToStringWalker,
+    addressAddressor,
+    addressDestructor
   }
 }
 
 
+
+  // const newPropAttribute = (prop, value) => {
+  //   if (global.plans.props[prop][value]) return { act: 'newPropAttribute', error: `prop ${prop} attrib ${value} exists.` }
+  //   global.plans.props[prop][value] = null
+  //   return { act: 'addedPropAttribute', prop: prop, address: value }    
+  // }
+
+  // const updateProp = (cmds, responder) => {
+    
+  //   const udSel = updatePropSelector(cmds)
+  //   if (udSel.error) return responder(JSON.stringify(udSel.error), 'text/html')
+    
+  //   if (!cmds.test) {
+  //     const fileText = makePropsPlansFile()
+  //     // fs.writeFileSync(target, fileText)      
+  //     fs.writeFileSync(config.plans.props.temp, fileText)      
+  //   }
+
+  //   // const params = JSON.stringify({ act: 'updatedProp', prop: cmds.prop, address: cmds.address })
+  //   //console.log('udSel', udSel)
+  //  console.log('udsel', udSel)
+    
+  //   const params = JSON.stringify(udSel)
+
+  //   responder(params, 'text/html')
+
+  //   //global.chronicle.save = `updated props ${cmds.prop} ${cmds.address}`
+  // }
+
+    // const newProp = (prop) => {
+  //   if (global.plans.props[prop]) return { act: 'newProp', error: `prop ${prop} exists.` }
+  //   global.plans.props[prop] = {}
+  //   return { act: 'addedProp', prop: prop }
+  // }
+
+  // const updatePropSelector = (cmds) => {
+  //   const {
+  //     act,
+  //     prop,
+  //     oldProp,
+  //     address,
+  //     value
+  //   } = cmds
+
+  //   if (act == 'deleteProp') { return deleteProp(prop) }
+  //   if (act == 'deletePropAttribute') { return deletePropAttribute(prop, address) }
+
+  //   if (!cmds.value && cmds.value != 'new') return { act: cmds.act, error: `no value given` }
+
+  //   if (!prop && !address) { return newProp(value) }
+  //   if (prop && !address)  { return newPropAttribute(prop, value) }
+  //   if (prop && address)   { return updatePropAttribute(prop, address, value) }
+
+    
+  //   console.log('cmds', cmds)
+    
+  //   return { error: 'dev upSel' }
+    
+  // }
 

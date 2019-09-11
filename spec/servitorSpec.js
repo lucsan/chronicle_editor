@@ -1,7 +1,7 @@
 describe('servitor', () => {
 
   const svt = require('../editor/servitor.js')
-  // const fs = require('fs')
+  const fs = require('fs')
   const config = require('../editor/config.js').config()
 
   const response = {
@@ -28,9 +28,30 @@ describe('servitor', () => {
     }
   }
 
-  global.plans = {}
-  global.plans.props = {}
+  const testPlan = {
+    test_item: {
+      str: 'A string',
+      num: 111,
+      boo: false,
+      obj: {
+        oStr: 'string in obj',
+        oNum: 222,
+        oBoo: true,
+        oArr: [{ obj1: 'thing' }, { obj2: 'thung' }],
+        oObj: { 
+          oObj1: () => {},
+        }
+      },
+      arr: [],
+      arr1: ['aaaa', 'bbbb']
+
+    },
+    test_item_2: {}
+
+  }
+ 
   let gpp = global.plans.props
+  let gps = global.plans.sets
 
   const respond = (response) => {
     return (content, mime) => {
@@ -52,62 +73,146 @@ describe('servitor', () => {
     
   })
 
-  it('should make a new prop', () => {
-    let x = svt.main(
-      {
-        test: true, 
-        act: 'newProp', 
-        value: tObj.prop 
-      }, 
-      responder, 
-    )
-      console.log(x)
-      
-    expect(typeof gpp[tObj.prop]).toBe('object')
+  describe('Plans to string walker', () => {
+
+    it('should walk plans and return a string', () => {
+      let pw = svt.main({
+        test: true,
+      }).plansToStringWalker(testPlan)
+
+      //console.log(pw)
+      const item = pw.substring(0, 10)
+      expect(item).toBe('\ttest_item')
+    })
+
   })
 
-  it('should add attribute to prop', () => {
-    svt.main({
-      test: true,
-      act: 'updateProp',
-      prop: tObj.prop,
-      value: tObj.prime,      
+  describe('updateSelector', () => {
 
-    }, responder)
+    it('should select a new prop', () => {
+      let res = svt.main({ test: true }).updateSelector({
+        act: 'add',
+        prop: 'new',
+        address: 'newItem'
+        
+      })      
+      expect(res).toEqual({ act: 'added', prop: 'newItem' })
+    })
+
+    it('should select a new attribute', () => {
+      let res = svt.main({ test: true }).updateSelector({
+        act: 'add',
+        prop: 'test',
+        address: 'test.attr'
+        
+      })
+      expect(res).toEqual({ act: 'updatedAttribute', prop: 'test', address: 'test.attr', value: {} })
+    })
+
+    it('should update an existing attribute', () => {
+      let res = svt.main({ test: true }).updateSelector({
+        act: 'update',
+        prop: 'test',
+        address: 'test.attr',
+        value: 'newValue'
+      })
+      expect(res).toEqual({ act: 'updatedAttribute', prop: 'test', address: 'test.attr', value: 'newValue' }) 
+    })
+
+    it('should delete an attribute', () => {
+      let res = svt.main({ test: true }).updateSelector({
+        act: 'delete',
+        prop: 'test',
+        address: 'test.attr'
+      })      
+      expect(res).toEqual({ act: 'deletedAttribute', prop: 'test', address: 'test.attr' }) 
+    })
+
+    it('should delete an item', () => {
+      gpp.testDeleteItem = {}
+      gpp.testDeleteItem.planko = 'test'
+      let res = svt.main({ test: true }).updateSelector({
+        act: 'delete',
+        prop: 'testDeleteItem'
+      })      
+      expect(res).toEqual({ act: 'deletedItem', prop: 'testDeleteItem' }) 
+    })    
+
+
+
+  })
+
+  describe('Main updates plans', () => {
+
+    it('should make a new prop', () => {
+      svt.main(
+        {
+          test: true, 
+          act: 'add',
+          prop: 'new',
+          address: 'newItem'
+        }, 
+        responder, 
+      )
+      expect(typeof gpp.newItem).toBe('object')
+    })   
     
-    expect(gpp[tObj.prop][tObj.prime]).not.toBe(undefined)
+    it('should add attribute to prop', () => {
+      svt.main({
+        test: true,
+        act: 'add',
+        prop: 'newItem',
+        address: 'test.attr',      
+      }, responder)
+
+      expect(typeof gpp.newItem.test.attr).toBe('object')
+
+    })
   })
+
+
 
   it('should update a attribute value', () => {
 
     svt.main(
       { 
         test: true, 
-        act: 'updateProp',
-        prop: tObj.prop,
-        address: tObj.prime,
-        value: tObj[tObj.prop][tObj.prime]
+        act: 'update',
+        prop: 'test',
+        address: 'test.attr',
+        value: 'newValue'
       }, 
       responder
     )
-
-    expect(gpp[tObj.prop][tObj.prime]).toEqual(tObj.mingVase.actions)
+    expect(gpp.test.test.attr).toBe('newValue')
   })
 
 
   it('should update an existing attribute value', () => {
-    const address = 'actions.smash'
     svt.main(
       { 
         test: true, 
-        act: 'updateProp',
-        prop: tObj.prop,
-        address: address,
+        act: 'update',
+        prop: 'test',
+        address: 'test.attr',
         value: 18
       }, 
       responder
     )
-    expect(gpp[tObj.prop].actions.smash).toBe(18)
+    expect(gpp.test.test.attr).toBe(18)
+  })
+
+  it('should delete a attribute', () => {
+    svt.main(
+      {
+        test: true,
+        act: 'delete',
+        prop: 'test',
+        address: 'test.attr'
+      },
+      responder
+    )
+    expect(gpp.test.test.attr).toBe(undefined)
   })
 
   it('should delete a prop', () => {
@@ -115,133 +220,30 @@ describe('servitor', () => {
     svt.main(
       {
         test: true,
-        act: 'deleteProp',
-        prop: tObj.prop
+        act: 'delete',
+        prop: 'pinkPonk'
       },
       responder
     )   
-    expect(typeof gpp[tObj.prop]).toBe('undefined')
+    expect(typeof gpp.pinkPonk).toBe('undefined')
   })
 
 
-  it('should delete a attribute', () => {
-    svt.main(
-      {
-        test: true,
-        act: 'deletePropAttribute',
-        prop: 'pinkPonk',
-        address: 'properties.fibble.leron'
-      },
-      responder
-    )
-    expect(gpp.pinkPonk.properties.fibble.leron).toBe(undefined)
-  })
+  // xit('should write a browser js config file (ie: common config)', () => {
+  //   svt.main({ test: true, act: 'createBrowserConfig' })
+  //   // svt.main({ test: true, act: 'test' }).createBrowserConfig()
+  //   expect(2).toBe(2)
+  //   expect(2).toBe(2)
+  // })
 
-  it('should write a browser js config file (ie: common config)', () => {
-    svt.main({ test: true, act: 'createBrowserConfig' })
-    // svt.main({ test: true, act: 'test' }).createBrowserConfig()
-    expect(2).toBe(2)
-    expect(2).toBe(2)
-  })
-
-  it('should create editable plans', () => {
-    svt.main({ test: true, act: 'createEditPlans' })
-    // svt.main({ test: true, act: 'test' }).createEditPlans()
+  // xit('should create editable plans', () => {
+  //   svt.main({ test: true, act: 'createEditPlans' })
+  //   // svt.main({ test: true, act: 'test' }).createEditPlans()
 
     
-    expect(1).toBe(2)
-  })
+  //   expect(1).toBe(2)
+  // })
 
-
-//   xit('should update an existing attributre value', () => {
-//     const address = `${tObj.prime}.bounce`
-//     svt.main(
-//       { 
-//         test: true, 
-//         act: 'updateProp',
-//         prop: tObj.prop,
-//         address: address,
-//         value: () => { console.log('new bounce function') }
-//       }, 
-//       responder
-//     )
-// console.log(gpp)
-
-//     const obj = {
-//       funca: () => { },
-//       thing: {
-//         boing: {
-//           bounce: ''
-//         },
-//         funki: () => {}
-//       },
-//       stuff: {
-//         instuff: {
-//           funko: () => { console.log() }
-//         }
-//       }
-//     }
-
-//     // const {thing, ...abj} = obj
-
-//     // console.log(obj)
-//     // console.log({...obj})
-//     // console.log(abj)
-//     // abj.stuff.metho = {}
-//     // console.log(obj)
-    
-//     let pran = {}
-//     pran.pron = { }
-
-//     pran['pron']['pro'] = 'x'
-
-//     // addressDeconstruct('obj.thing.boing.bounce', 'pron', pran)
-//     addressAddressor(pran.pron, 'doings', {}) 
-//     console.log('pran', pran)
-//     addressAddressor(pran.pron, 'doings.boing', {}) 
-//     addressAddressor(pran.pron, 'doings.flart', 'beepo') 
-//       console.log('pran', pran)        
-//     addressAddressor(pran.pron, 'doings.boing.bounce', 'val1' )
-
-//     // addressAddressor(pran.pron, null, 'val3')
-//     console.log('pran', pran)
-    
-
-//     expect(typeof gpp[tObj.prop][tObj.prime].bounce).toBe('function')
-//   })
-
-  // /* Rules:
-  //  * An address can be upto 3 items (a.b.c)
-  //  * Plans are prop or set pointer
-  //  * if a place (prime, genus, order) exists value is added
-  //  * if a place does not exist, will make one
-  //  * returns nothing as it mutates the plans object
-  // */
-  // const addressAddressor = (plans, address, value) => {
-  //   const [prime, genus, order] = address.split('.')
-  //   let v = null
-  //   typeof value == 'object' && !Array.isArray(value)? v = {...value}: v = value 
-  //   if (prime && !plans[prime]) { plans[prime] = {} }
-  //   if (genus && !plans[prime][genus]) { plans[prime][genus] = {} }
-  //   if (order) return plans[prime][genus][order] = v
-  //   if (genus) return plans[prime][genus] = v
-  //   if (prime) return plans[prime] = v
-  // }
-
-
-  // const addressDeconstruct = (plans, address, value) => {
-  //   let d = baseDot.split('.')
-  //   let a = address.split('.')
-  // let t = d.concat(a)    
-  //   console.log(d, a)
-  //   console.log(t)
-
-
-    
-  //   baseObj[address] = 'y'
-
-    
-  // }
 
 })
 
