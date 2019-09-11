@@ -107,75 +107,75 @@ const missingDefaults = (targetProp) => {
   return missing
 }
 
-const nameLevelElement = (name, address, indClass) => {
-  let e = elCom('div', { classes: `attrib ${indClass}`})
-  const id = `${address}${name}`
-  e.appendChild(elCom('span', { text: name, classes: `title ${indClass}` }))
-  e.appendChild(elCom('textarea', { id: id, classes: 'textareaShort' }))
-  e.appendChild(renderObjectButtons({name: name, address: address, valueElId: id }))
-  return e
-}
+// const nameLevelElement = (name, address, indClass) => {
+//   let e = elCom('div', { classes: `attrib ${indClass}`})
+//   const id = `${address}${name}`
+//   e.appendChild(elCom('span', { text: name, classes: `title ${indClass}` }))
+//   e.appendChild(elCom('textarea', { id: id, classes: 'textareaShort' }))
+//   e.appendChild(renderObjectButtons({name: name, address: address, valueElId: id }))
+//   return e
+// }
 
-const valueLevelElement = (obj, name, address, indClass) => {
-  let e = elCom('div', { classes: `attrb ${indClass}` })
-  const id = `${address}${name}`
-  e.appendChild(elCom('span', { text: '*' + name, classes: 'title' }))
-  e.appendChild(elCom('textarea', { id: id, classes: 'textareaLong', value: obj[name] }))
-  e.appendChild(renderValueButtons({name, address, valueElId: id }))
-  return e
-}
+// const valueLevelElement = (obj, name, address, indClass) => {
+//   let e = elCom('div', { classes: `attrb ${indClass}` })
+//   const id = `${address}${name}`
+//   e.appendChild(elCom('span', { text: '*' + name, classes: 'title' }))
+//   e.appendChild(elCom('textarea', { id: id, classes: 'textareaLong', value: obj[name] }))
+//   e.appendChild(renderValueButtons({name, address, valueElId: id }))
+//   return e
+// }
 
-const renderObjectButtons = (cmds) => {
-  const address = `${cmds.address}${cmds.name}`
-  let btns = elCom('span', { classes: 'buttons' })
+// const renderObjectButtons = (cmds) => {
+//   const address = `${cmds.address}${cmds.name}`
+//   let btns = elCom('span', { classes: 'buttons' })
 
-  const addressItems = address.split('.')
-  if (addressItems.length < 3) {
-    btns.appendChild(renderButton('add', 'add', () => { prepAndPostPropValues({ ...cmds, act: 'add' }) }))  
-  }
+//   const addressItems = address.split('.')
+//   if (addressItems.length < 3) {
+//     btns.appendChild(renderButton('add', 'add', () => { prepAndPostPropValues({ ...cmds, act: 'add' }) }))  
+//   }
 
-  btns.appendChild(renderButton('update', 'update', () => { prepAndPostPropValues(cmds) }))  
+//   btns.appendChild(renderButton('update', 'update', () => { prepAndPostPropValues(cmds) }))  
 
-  btns.appendChild(renderButton('delete', 'delete', () => {
-    deletePropAttribute({ ...cmds, address: address }) 
-  }))
+//   btns.appendChild(renderButton('delete', 'delete', () => {
+//     deletePropAttribute({ ...cmds, address: address }) 
+//   }))
 
 
-  return btns
-}
+//   return btns
+// }
 
-const renderValueButtons = (cmds) => {
-  const address = `${cmds.address}${cmds.name}`
-  let btns = elCom('span')
-  btns.appendChild(renderButton('update', 'update', () => { prepAndPostPropValues(cmds) }))
+// const renderValueButtons = (cmds) => {
+//   const address = `${cmds.address}${cmds.name}`
+//   let btns = elCom('span')
+//   btns.appendChild(renderButton('update', 'update', () => { prepAndPostPropValues(cmds) }))
 
-  btns.appendChild(renderButton('delete', 'delete', () => {
-    deletePropAttribute({ ...cmds, address: address, value: document.getElementById(cmds.valueElId).value })
-  }))
-  return btns
-}
+//   btns.appendChild(renderButton('delete', 'delete', () => {
+//     deletePropAttribute({ ...cmds, address: address, value: document.getElementById(cmds.valueElId).value })
+//   }))
+//   return btns
+// }
 
-const prepAndPostPropValues = (cmds) => {
-  // console.log('recievedValues', {...cmds}, action)
+// const prepAndPostPropValues = (cmds) => {
+//   // console.log('recievedValues', {...cmds}, action)
 
-  let { name, address, valueElId, act } = cmds
-  let value = document.getElementById(valueElId).value 
+//   let { name, address, valueElId, act } = cmds
+//   let value = document.getElementById(valueElId).value 
 
-  const obj = makeAddress({ address, name, value, act })
-  if (act) { 
-    obj.act = act
-  } else {
-    obj.act = 'updateProp'
-  }
-  obj.prop = window.chronicle.prop  
+//   const obj = makeAddress({ address, name, value, act })
+//   if (act) { 
+//     obj.act = act
+//   } else {
+//     obj.act = 'updateProp'
+//   }
+//   obj.prop = window.chronicle.prop  
 
-  console.log('obj', obj)  
+//   console.log('obj', obj)  
 
-  //addressAddressor(window.chronicle.plans.propsUpdate[obj.prop], obj.address, obj.value)
+//   //addressAddressor(window.chronicle.plans.propsUpdate[obj.prop], obj.address, obj.value)
  
-  ajax(JSON.stringify(obj))
-  // return obj
-}
+//   ajax(JSON.stringify(obj))
+//   // return obj
+// }
 
 
 

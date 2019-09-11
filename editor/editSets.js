@@ -32,53 +32,53 @@ const edit = (set) => {
 }
 
 
-const nameLevelElement = (name, address, indClass) => {
-  let e = elCom('div', { classes: `attrib ${indClass}`})
-  const id = `${address}${name}`
-  e.appendChild(elCom('span', { text: name, classes: `title ${indClass}` }))
-  e.appendChild(elCom('textarea', { id: id, classes: 'textareaShort' }))
-  e.appendChild(renderObjectButtons({name: name, address: address, valueElId: id }))
-  return e
-}
+// const nameLevelElement = (name, address, indClass) => {
+//   let e = elCom('div', { classes: `attrib ${indClass}`})
+//   const id = `${address}${name}`
+//   e.appendChild(elCom('span', { text: name, classes: `title ${indClass}` }))
+//   e.appendChild(elCom('textarea', { id: id, classes: 'textareaShort' }))
+//   e.appendChild(renderObjectButtons({name: name, address: address, valueElId: id }))
+//   return e
+// }
 
-const renderObjectButtons = (cmds) => {
-  const address = `${cmds.address}${cmds.name}`
-  let btns = elCom('span', { classes: 'buttons' })
+// const renderObjectButtons = (cmds) => {
+//   const address = `${cmds.address}${cmds.name}`
+//   let btns = elCom('span', { classes: 'buttons' })
 
-  const addressItems = address.split('.')
-  if (addressItems.length < 3) {
-    btns.appendChild(renderButton('add', 'add', () => { prepAndPostValues({ ...cmds, act: 'add' }) }))  
-  }
+//   const addressItems = address.split('.')
+//   if (addressItems.length < 3) {
+//     btns.appendChild(renderButton('add', 'add', () => { prepAndPostValues({ ...cmds, act: 'add' }) }))  
+//   }
 
-  btns.appendChild(renderButton('update', 'update', () => { prepAndPostValues(cmds) }))  
+//   btns.appendChild(renderButton('update', 'update', () => { prepAndPostValues(cmds) }))  
 
-  btns.appendChild(renderButton('delete', 'delete', () => {
-    deleteAttribute({ ...cmds, address: address }) 
-  }))
+//   btns.appendChild(renderButton('delete', 'delete', () => {
+//     deleteAttribute({ ...cmds, address: address }) 
+//   }))
 
 
-  return btns
-}
+//   return btns
+// }
 
-const valueLevelElement = (obj, name, address, indClass) => {
-  let e = elCom('div', { classes: `attrb ${indClass}` })
-  const id = `${address}${name}`
-  e.appendChild(elCom('span', { text: '*' + name, classes: 'title' }))
-  e.appendChild(elCom('textarea', { id: id, classes: 'textareaLong', value: obj[name] }))
-  e.appendChild(renderValueButtons({name, address, valueElId: id }))
-  return e
-}
+// const valueLevelElement = (obj, name, address, indClass) => {
+//   let e = elCom('div', { classes: `attrb ${indClass}` })
+//   const id = `${address}${name}`
+//   e.appendChild(elCom('span', { text: '*' + name, classes: 'title' }))
+//   e.appendChild(elCom('textarea', { id: id, classes: 'textareaLong', value: obj[name] }))
+//   e.appendChild(renderValueButtons({name, address, valueElId: id }))
+//   return e
+// }
 
-const renderValueButtons = (cmds) => {
-  const address = `${cmds.address}${cmds.name}`
-  let btns = elCom('span')
-  btns.appendChild(renderButton('update', 'update', () => { prepAndPostValues(cmds) }))
+// const renderValueButtons = (cmds) => {
+//   const address = `${cmds.address}${cmds.name}`
+//   let btns = elCom('span')
+//   btns.appendChild(renderButton('update', 'update', () => { prepAndPostValues(cmds) }))
 
-  btns.appendChild(renderButton('delete', 'delete', () => {
-    deleteAttribute({ ...cmds, address: address, value: document.getElementById(cmds.valueElId).value })
-  }))
-  return btns
-}
+//   btns.appendChild(renderButton('delete', 'delete', () => {
+//     deleteAttribute({ ...cmds, address: address, value: document.getElementById(cmds.valueElId).value })
+//   }))
+//   return btns
+// }
 
 // Delete an attribute which is an attribute container.
 const deleteAttribute = (cmds) => {
@@ -95,7 +95,7 @@ const addNewAttribute = (type) => {
   const id = 'newAttribute'
   let na = elCom('div', {})
   let t= elCom('textarea', { id: id, classes: 'textareaShort' })
-  let b = renderButton('add', 'add', () => { prepAndPostValues({ act: 'add', valueElId: id }) })
+  let b = renderButton('add', 'add', () => { postServerCommand({ set: window.chronicle.set, act: 'add', valueElId: id }) })
 
   na.appendChild(elCom('span', { text: 'New Attrib' } ))
   na.appendChild(t)
@@ -104,57 +104,30 @@ const addNewAttribute = (type) => {
   return na
 }
 
-const prepAndPostValues = (cmds) => {
-  //console.log('recievedValues', {...cmds}, action)
-  let { name, address, valueElId, act, type } = cmds
-  let value = document.getElementById(valueElId).value
-
-  console.log('xxxxxxxxxxxxxxx', cmds, value)
-  
-
-  const obj = makeAddress({ address, name, value, act })
-
-  console.log('yyyyyyyyyyyyy', obj)
-  
-  //obj.type = type
-  if (act) { 
-    obj.act = act
-  } else {
-    obj.act = 'update'
-  }
-  obj.prop = window.chronicle.prop
-  obj.set = window.chronicle.set
-
-  console.log(obj)
-  
-
-  // addressAddressor(window.chronicle.plans.propsUpdate[obj.prop], obj.address, obj.value)
- 
-  ajax(JSON.stringify(obj))
-
-}
-
-
-// const prepAndPostPropValues = (cmds, action) => {
-//   // console.log('recievedValues', {...cmds}, action)
-
-//   let { name, address, valueElId, act } = cmds
-//   let value = document.getElementById(valueElId).value 
+// const prepAndPostValues = (cmds) => {
+//   console.log('recievedValues', cmds)
+//   let { name, address, valueElId, act, type } = cmds
+//   let value = document.getElementById(valueElId).value
 
 //   const obj = makeAddress({ address, name, value, act })
-//   if (action) { 
-//     obj.act = action
+// console.log('ppv', obj)
+
+//   //obj.type = type
+//   if (act) { 
+//     obj.act = act
 //   } else {
-//     obj.act = 'updateProp'
+//     obj.act = 'update'
 //   }
-//   obj.prop = window.chronicle.prop  
+//   obj.prop = window.chronicle.prop
+//   obj.set = window.chronicle.set
 
-//   console.log('obj', obj)  
+//   console.log(obj)
+  
 
-//   addressAddressor(window.chronicle.plans.propsUpdate[obj.prop], obj.address, obj.value)
+//   // addressAddressor(window.chronicle.plans.propsUpdate[obj.prop], obj.address, obj.value)
  
 //   ajax(JSON.stringify(obj))
-//   // return obj
+
 // }
 
 const checkCurrentSet = (set) => {

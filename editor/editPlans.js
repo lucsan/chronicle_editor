@@ -51,6 +51,56 @@ const elementsFromObjects = (object, el) => {
   return el
 }
 
+const nameLevelElement = (name, address, indClass) => {
+  let e = elCom('div', { classes: `attrib ${indClass}`})
+  const id = `${address}${name}`
+  e.appendChild(elCom('span', { text: name, classes: `title ${indClass}` }))
+  e.appendChild(elCom('textarea', { id: id, classes: 'textareaShort' }))
+  e.appendChild(renderObjectButtons({name, address, valueElId: id }))
+  return e
+}
+
+const valueLevelElement = (obj, name, address, indClass) => {
+  let e = elCom('div', { classes: `attrb ${indClass}` })
+  const id = `${address}${name}`
+  e.appendChild(elCom('span', { text: '*' + name, classes: 'title' }))
+  e.appendChild(elCom('textarea', { id: id, classes: 'textareaLong', value: obj[name] }))
+  e.appendChild(renderValueButtons({name, address, valueElId: id }))
+  return e
+}
+
+const renderObjectButtons = (cmds) => {
+  const address = `${cmds.address}${cmds.name}`
+  let btns = elCom('span', { classes: 'buttons' })
+
+  const addressItems = address.split('.')
+  if (addressItems.length < 3) {
+    // btns.appendChild(renderButton('add', 'add', () => { prepAndPostValues({ ...cmds, act: 'add' }) }))  
+    btns.appendChild(renderButton('add', 'add', () => { postServerCommand({ ...cmds, act: 'add' }) }))  
+  }
+
+  btns.appendChild(renderButton('update', 'update', () => { postServerCommand({ ...cmds, act: 'update' }) }))  
+  // btns.appendChild(renderButton('update', 'update', () => { prepAndPostValues({ ...cmds, act: 'update' }) }))  
+
+  btns.appendChild(renderButton('delete', 'delete', () => {
+    deleteAttribute({ ...cmds, address: address }) 
+  }))
+
+
+  return btns
+}
+
+const renderValueButtons = (cmds) => {
+  const address = `${cmds.address}${cmds.name}`
+  let btns = elCom('span')
+  btns.appendChild(renderButton('update', 'update', () => { postServerCommand({ ...cmds, act: 'update' }) }))
+  // btns.appendChild(renderButton('update', 'update', () => { prepAndPostPropValues({ ...cmds, act: 'update' }) }))
+
+  btns.appendChild(renderButton('delete', 'delete', () => {
+    deletePropAttribute({ ...cmds, address: address, value: document.getElementById(cmds.valueElId).value })
+  }))
+  return btns
+}
 
 const renderButton = (cssClass, iconCode, func) => {
   let icon = '💾' // save/update
@@ -67,37 +117,83 @@ const renderButton = (cssClass, iconCode, func) => {
   return el
 }
 
-const makeAddress = (data) => {
-  let obj = {}
-
-  if (data.address == null || data.address == '' && data.act != 'add') {
-    if (data.name == null || data.name == '') {
-      obj.address = data.value
-      obj.value = {}
-      return obj
-    }
-
-    return obj
-  }
-
-  if (data.act == 'add') {
-    obj.address = `${data.name}.${data.value}`
-    obj.value = {}
-  } else {
-    obj.address = data.name
-    obj.value = data.value
-  }    
-
-  obj.address = `${data.address}${data.name}`
-  if (data.act == 'add') {
-    obj.address += `.${data.value}`
-    obj.value = {}
-    return obj
-  }
-
-  obj.value = data.value
-  return obj
+const postServerCommand = (cmds) => {
+  ajax(JSON.stringify(prepServerValues(cmds)))
 }
+
+// Server requires: act, set or prop, [address], [value]
+const prepServerValues = (data = {}) => {
+  data.value = document.getElementById(data.valueElId).value
+  delete(data.valueElId)
+  let values = makeAnAddress(data)
+  return values
+}
+
+// if only value then value = address of new item
+const makeAnAddress = (data = {}) => {
+  if (!data.address) {
+    if (data.value) data.address = data.value
+  }
+  return data
+}
+
+// const prepAndPostValues = (cmds) => {
+//   console.log('recievedValues', cmds)
+//   let { name, address, valueElId, act, type } = cmds
+//   let value = document.getElementById(valueElId).value
+
+//   const obj = makeAddress({ address, name, value, act })
+// console.log('ppv', obj)
+
+//   //obj.type = type
+//   if (act) { 
+//     obj.act = act
+//   } else {
+//     obj.act = 'update'
+//   }
+//   obj.prop = window.chronicle.prop
+//   obj.set = window.chronicle.set
+
+//   console.log(obj)
+  
+
+//   // addressAddressor(window.chronicle.plans.propsUpdate[obj.prop], obj.address, obj.value)
+ 
+//   ajax(JSON.stringify(obj))
+
+// }
+
+// const makeAddress = (data) => {
+//   let obj = {}
+
+//   if (data.address == null || data.address == '' && data.act != 'add') {
+//     if (data.name == null || data.name == '') {
+//       obj.address = data.value
+//       obj.value = {}
+//       return obj
+//     }
+
+//     return obj
+//   }
+
+//   if (data.act == 'add') {
+//     obj.address = `${data.name}.${data.value}`
+//     obj.value = {}
+//   } else {
+//     obj.address = data.name
+//     obj.value = data.value
+//   }    
+
+//   obj.address = `${data.address}${data.name}`
+//   if (data.act == 'add') {
+//     obj.address += `.${data.value}`
+//     obj.value = {}
+//     return obj
+//   }
+
+//   obj.value = data.value
+//   return obj
+// }
 
 const indentClass = (ind) => {
   if (ind > 0) return `indent_${ind}`
