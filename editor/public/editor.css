@@ -5,6 +5,7 @@ div.attribs { border: 1px solid blue; }
 
 div.indent_1 { padding-left: 10px; }
 div.indent_2 { padding-left: 20px; }
+div.indent_3 { padding-left: 30px; }
 
 span.title { 
   padding-right: 0.5em;

@@ -6,7 +6,7 @@ exports.main = (cmds, responder) => {
 
   const updateProp = (cmds, responder) => {
     
-    const udSel = updateSelector(cmds)
+    const udSel = updatePropSelector(cmds)
     if (udSel.error) return responder(JSON.stringify(udSel.error), 'text/html')
     
     if (!cmds.test) {
@@ -25,20 +25,82 @@ exports.main = (cmds, responder) => {
 
     //global.chronicle.save = `updated props ${cmds.prop} ${cmds.address}`
   }
-  
-  // new Prop if prop dosen't exist, [done]
-  // change prop name (update) [issue]
-  // new attribute (new prop if prop dosen't exist)
-  // change attribute (update)
 
-  // no value (error)
-  // v !address !prop = new prop
-  // v prop !address = update prop (name)
-  //   -- cant handle this, needs oldPropName, or newPropName
-  //   -- maybe copy prop?
-  // v prop address = new or update attribute
+
+  const updateItem = (cmds, responder) => {
+    const udSel = updateSelector(cmds)
+    if (udSel.error) return responder(JSON.stringify(udSel.error), 'text/html')
+
+    if (!cmds.test) { makePlansFile(cmds.is) }
+
+    console.log('udsel', udSel)
+
+    responder(JSON.stringify(udSel), 'text/html')
+  }
+
+  const makePlansFile = (isType) => {
+    if (isType == 'prop') {
+      return fs.writeFileSync(config.plans.props.temp, makePropsPlansFile(global.plans.props, 'let'))
+    }
+    if (isType == 'set') {
+      return fs.writeFileSync(config.plans.sets.temp, makeSetsPlansFile(global.plans.sets, 'let'))
+    }
+  }
+
 
   const updateSelector = (cmds) => {
+    console.log('us', cmds)
+    const { act, prop, set, address, value } = cmds
+    
+    let plans = {}
+    let item = null
+
+    if (cmds.prop) {
+      cmds.is = 'prop'
+      plans = global.plans.props
+      item = prop
+    }
+
+    if (cmds.set) {
+      cmds.is = 'set'
+      plans = global.plans.sets
+      item = set
+    }
+
+    if (act == 'add' && item == 'new') return newItem(plans, address, cmds.is)
+    if (act == 'add' && item && address) return newAttribute(plans, item, address, cmds.is )
+
+
+    return { error: 'dev upSel' }
+    
+  }
+
+  const newItem = (plans, name, isType) => {
+    if (plans[name]) return { act: `new${isType}`, error: `${isType} ${name} exists.`}
+    plans[name] = {}
+    return { act: 'added', [`${isType}`]: name } 
+  }
+
+  const newAttribute = (plans, item, address, isType) => {
+    if (plans[item][address]) return { act: `new${isType}Attribute`, error: `${isType} ${address} exists.` }
+    plans[item][address] = null
+    return { act: `addedAttribute`, [`${isType}`]: item, address }
+  }
+
+  
+  const newPropAttribute = (prop, value) => {
+    if (global.plans.props[prop][value]) return { act: 'newPropAttribute', error: `prop ${prop} attrib ${value} exists.` }
+    global.plans.props[prop][value] = null
+    return { act: 'addedPropAttribute', prop: prop, address: value }    
+  }
+
+  // const newProp = (prop) => {
+  //   if (global.plans.props[prop]) return { act: 'newProp', error: `prop ${prop} exists.` }
+  //   global.plans.props[prop] = {}
+  //   return { act: 'addedProp', prop: prop }
+  // }
+
+  const updatePropSelector = (cmds) => {
     const {
       act,
       prop,
@@ -63,17 +125,8 @@ exports.main = (cmds, responder) => {
     
   }
 
-  const newProp = (prop) => {
-    if (global.plans.props[prop]) return { act: 'newProp', error: `prop ${prop} exists.` }
-    global.plans.props[prop] = {}
-    return { act: 'addedProp', prop: prop }
-  }
 
-  const newPropAttribute = (prop, value) => {
-    if (global.plans.props[prop][value]) return { act: 'newPropAttribute', error: `prop ${prop} attrib ${value} exists.` }
-    global.plans.props[prop][value] = null
-    return { act: 'addedPropAttribute', prop: prop, address: value }    
-  }
+
 
   const deleteProp = (prop) => {
     delete(global.plans.props[prop])
@@ -116,51 +169,82 @@ exports.main = (cmds, responder) => {
     if (prime) return plans[prime] = v
   }
 
-  const makePropsPlansFile = () => {
+  const makePropsPlansFile = (plans, varType = 'const') => {
     let s = ''
-    s += 'const propsPlans = {\n'
-    s += plansWalker(global.plans.props)
+    s += `${varType} propsPlans = {\n`
+    s += plansToStringWalker(plans)
     s+= '}'
     return s
   }
-  
-  const plansWalker = (plans) => {
-  
-    const walk = (obj, s, tabs, lv) => {
-      for (let k in obj) {
-        lv++
-        if (typeof obj[k] == 'object' && !Array.isArray(obj[k])) {
-          tabs += '  '       
-          s += `${tabs}${k}: {\n`
-          s = walk(obj[k], s, tabs, lv)
-          s += `${tabs}},\n`
-          tabs = tabs.substring(0, tabs.length - 2)
-          lv--
-          if (lv === 1) s += '\n'               
-        } else {
-          let value = obj[k]
-          //if (value === 'null') console.log(k)
-          if (typeof value == 'string') value =  `'${value}'`
-          if (typeof value == 'object') value = `['${value.join('\',\'')}']`
-          //console.log(value)
-          
-          s += `  ${tabs}${k}: ${value},\n`
-          lv--
-        }      
-      }
-      return s
-    }
-    return walk(plans, '', '', 1)
+
+  const makeSetsPlansFile = (plans, varType = 'const') => {
+    let s = ''
+    s +=  `${varType} setsPlans = {\n`
+    s += plansToStringWalker(plans)
+    s+= '}'
+    return s 
   }
 
+  const plansToStringWalker = (plans, i = 0) => {
+    i++
+    let tabs = ''
+    for (let c = 0; c < i; c++) {  
+      tabs += '\t'
+    }
+    if (typeof plans == 'object') { // Any object (ie: also arrays)
+      let s = ''  
+      for (let key in plans) {
+        if (!Array.isArray(plans[key])) { // not array object
+          const { ks, omo, omc } = demarcPairing(plans[key], key, tabs)
+          const pwr = plansToStringWalker(plans[key], i)
+          s += `${tabs}${ks}${omo}${pwr}${omc}`
+        } else { // is an array
+          if (typeof plans[key][0] == 'object') { // array contains objects (and/or arrays)
+            s += `${tabs}${key}: [\n`
+            for (let int in plans[key]) {
+              s += `${tabs}{\n${plansToStringWalker(plans[key][int], i)}${tabs}},\n`
+            }
+            s+= `${tabs}],\n`
+          } else { // array is a list
+            s += `${tabs}${key}: [${plans[key]}],\n`
+          }
+        }    
+      }
+      return s
+    } else {
+      return plans
+    }
+  }
+
+  const demarcPairing = (item, key, tabs) => {
+    let ks = `${key}: `
+    let omo = '{\n'
+    let omc = `${tabs}},\n`
+    let toi = typeof item
+    if (Array.isArray(item)) {
+      omo = '['
+      omc = '],\n'
+    }
+    if (toi == 'string') {
+      omo = '\''
+      omc = '\',\n'
+    }
+    if (toi == 'number' || toi == 'boolean' || toi == 'function') {
+      omo = ''
+      omc = ',\n'
+    }
+
+    return { ks, omo, omc }
+  }
+  
   const createEditPlans = () => {
     console.log('creating edit plans')
     
     const pp = fs.readFileSync(config.plans.props.source, 'utf-8')
-    fs.writeFileSync(config.plans.props.temp, pp.replace('const', 'let'))
+    fs.writeFileSync(config.plans.props.temp, pp.replace('const ', 'let '))
 
     const sp = fs.readFileSync(config.plans.sets.source, 'utf-8')
-    fs.writeFileSync(config.plans.sets.temp, sp.replace('const', 'let'))
+    fs.writeFileSync(config.plans.sets.temp, sp.replace('const ', 'let '))
   }
 
   const createBrowserConfig = () => {
@@ -171,30 +255,48 @@ exports.main = (cmds, responder) => {
   
   const setup = () => {
     createBrowserConfig()
-    if (typeof global.plans == 'undefined' || typeof global.plans.props == 'undefined') { 
+
+    if (global.plans == undefined) {
       createEditPlans()
-      ckr.readJsVar(config.plans.props.temp)
       global.plans = {}
+    }
+
+    if (global.plans.props == undefined) {
+      ckr.readJsVar(config.plans.props.temp)
       global.plans.props = propsPlans
     }
+
+    if (global.plans.sets == undefined) {
+      ckr.readJsVar(config.plans.sets.temp)
+      global.plans.sets = setsPlans
+    }
+
   }
 
+  //console.log('plans', global.plans)
+
   //TODO: refactor these down to all use act == prop
-  if (cmds.act == 'prop') return updateProp(cmds, responder) 
+  // if (cmds.act == 'prop') return updateProp(cmds, responder) 
  
-  if (cmds.act == 'newProp') return updateProp(cmds, responder)
-  if (cmds.act == 'updateProp') return updateProp(cmds, responder)
-  if (cmds.act == 'deleteProp') return updateProp(cmds, responder)       
-  if (cmds.act == 'newPropAttribute') return updateProp(cmds, responder)    
-  if (cmds.act == 'deletePropAttribute') return updateProp(cmds, responder)
+  //if (cmds.act == 'newProp') return updateProp(cmds, responder)
+  // if (cmds.act == 'updateProp') return updateProp(cmds, responder)
+  // if (cmds.act == 'deleteProp') return updateProp(cmds, responder)       
+  // if (cmds.act == 'newPropAttribute') return updateProp(cmds, responder)    
+  // if (cmds.act == 'deletePropAttribute') return updateProp(cmds, responder)
+
+  console.log('cmds', cmds)
+
+  if (cmds.prop || cmds.set) { return updateItem(cmds, responder) }
 
   if (cmds.act == 'createBrowserConfig') return createBrowserConfig()
-  if (cmds.act == 'createEditPlans') return createEditPlans()
+  if (cmds.act == 'createEditPlans') return createEditPlans() 
+
 
   console.log('Unknown act: cmds ', cmds)    
 
   return {
-    setup
+    setup,
+    plansToStringWalker
   }
 }
 

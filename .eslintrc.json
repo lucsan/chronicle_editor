@@ -9,11 +9,18 @@
         "ecmaVersion": 2018
     },
     "globals": {
+      "describe": "writable",
+      "it": "writable",
+      "expect": "writable",
       "propsPlans": "readonly",
       "prop": "writable",
       "setsPlans": "readonly",
       "set": "writable",
-      "defaultProp": "readonly"
+      "defaultProp": "readonly",
+      "elCom": "writable",
+      "elAel": "writable",
+      "renderButton": "writable",
+      "ajax": "writable"
     },
     "rules": {
         "indent": [

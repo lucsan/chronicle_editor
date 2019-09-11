@@ -18,8 +18,8 @@ const router = (responder, path) => {
   if (path.indexOf('/list') > -1) {
     
     if (path.indexOf('/props') < 0 && path.indexOf('/sets') < 0) filepath = '/public/listPlans.html'
-    if (path.indexOf('/props') > -1) filepath = '/public/editPlans.html'
-    if (path.indexOf('/sets') > -1) filepath = '/public/editPlans.html'
+    if (path.indexOf('/props') > -1) filepath = '/public/editProps.html'
+    if (path.indexOf('/sets') > -1) filepath = '/public/editSets.html'
   }
 
   if (path.indexOf('/save') > -1) { // or delete or update
