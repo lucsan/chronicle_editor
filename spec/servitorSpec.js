@@ -87,6 +87,26 @@ describe('servitor', () => {
 
   })
 
+  describe('addressAddressor', () => {
+    it('should create an object if there isnt one', () => {
+      const plan = testPlan['test_item']
+      const address = 'newObj'
+      const value = 'newValue'
+
+      svt.main({ test: true }).addressAddressor(address, plan, {})
+      expect(testPlan.test_item.newObj).toEqual({})
+    })
+
+    it('should use a value if there is one', () => {
+      const plan = testPlan['test_item']
+      const address = 'newObj.subObj'
+      const value = 'newValue'
+
+      svt.main({ test: true }).addressAddressor(address, plan, value)
+      expect(testPlan.test_item.newObj.subObj).toEqual('newValue')
+    })
+  })
+
   describe('updateSelector', () => {
 
     it('should select a new prop', () => {

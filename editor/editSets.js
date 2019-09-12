@@ -1,6 +1,6 @@
 'strict'
 
-window.chronicle.plans.setsUpdate = setsPlans
+//window.chronicle.plans.setsUpdate = setsPlans
 
 window.onload = () => edit()
 
@@ -91,18 +91,18 @@ const deleteAttribute = (cmds) => {
 }
 
 
-const addNewAttribute = (type) => {
-  const id = 'newAttribute'
-  let na = elCom('div', {})
-  let t= elCom('textarea', { id: id, classes: 'textareaShort' })
-  let b = renderButton('add', 'add', () => { postServerCommand({ set: window.chronicle.set, act: 'add', valueElId: id }) })
+// const addNewAttribute = (type) => {
+//   const id = 'newAttribute'
+//   let na = elCom('div', {})
+//   let t= elCom('textarea', { id: id, classes: 'textareaShort' })
+//   let b = renderButton('add', 'add', () => { postServerCommand({ set: window.chronicle.set, act: 'add', valueElId: id }) })
 
-  na.appendChild(elCom('span', { text: 'New Attrib' } ))
-  na.appendChild(t)
-  na.appendChild(b)
+//   na.appendChild(elCom('span', { text: 'New Attrib' } ))
+//   na.appendChild(t)
+//   na.appendChild(b)
 
-  return na
-}
+//   return na
+// }
 
 // const prepAndPostValues = (cmds) => {
 //   console.log('recievedValues', cmds)

@@ -21,6 +21,18 @@ span.title {
 
 .thingButton, .button {
   cursor: pointer;
+
+}
+
+.button {
+  border: 1px solid gray; 
+  width: 100px; 
+}
+
+.activeItemTitle {
+  font-weight: bold;
+  font-size: larger;
+
 }
 
 .textareaLong {

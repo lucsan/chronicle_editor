@@ -9,9 +9,9 @@ exports.main = (cmds, responder) => {
     const udSel = updateSelector(cmds)
     if (udSel.error) return responder(JSON.stringify(udSel.error), 'text/html')
 
-    if (!cmds.test) { makePlansFile(cmds.is) }
+    if (!cmds.test) { makePlansFile(cmds.itemType) }
 
-    //console.log('udsel', udSel)
+    console.log('udsel', udSel)
 
     responder(JSON.stringify(udSel), 'text/html')
   }
@@ -21,43 +21,49 @@ exports.main = (cmds, responder) => {
     
     let plans = {}
     let item = null
+    let itemType = null
 
     if (cmds.prop) {
-      cmds.is = 'prop'
+      itemType = 'prop'
       plans = global.plans.props
       item = prop
     }
 
     if (cmds.set) {
-      cmds.is = 'set'
+      itemType = 'set'
       plans = global.plans.sets
       item = set
     }
 
-    if (act == 'add' && item == 'new') return newItem(plans, address, cmds.is)
-    if (act == 'delete' && item && !address) return deleteItem(plans, item, cmds.is)
-        
-    if (act == 'add' && item && address) return updateAttribute(plans, item, address, {}, cmds.is )
-    if (act == 'update' && item && address && value) return updateAttribute(plans, item, address, value, cmds.is)    
-    if (act == 'delete' && item && address) return deleteAttribute(plans, item, address, cmds.is)
+    cmds.itemType = itemType
+
+    if (act == 'add' && item == 'new') return newItem(plans, address, itemType)
+    if (act == 'add' && item && address) return updateAttribute(plans, item, address, {}, itemType)
+
+    if (act == 'update' && item && address && value) return updateAttribute(plans, item, address, value, itemType)  
+
+    if (act == 'delete' && item && !address) return deleteItem(plans, item, itemType)    
+    if (act == 'delete' && item && address) return deleteAttribute(plans, item, address, itemType)
  
     return { error: 'dev upSel', data: cmds }
     
   }
 
   const makePlansFile = (isType) => {
+    console.log('making plans files', isType)
+    
     if (isType == 'prop') {
-      return fs.writeFileSync(config.plans.props.temp, makePropsPlansFile(global.plans.props, 'let'))
+      return fs.writeFileSync(config.plans.props.temp, makePlansFileString(global.plans.props, 'propsPlans', 'let'))
     }
     if (isType == 'set') {
-      return fs.writeFileSync(config.plans.sets.temp, makeSetsPlansFile(global.plans.sets, 'let'))
+      return fs.writeFileSync(config.plans.sets.temp, makePlansFileString(global.plans.sets, 'setsPlans', 'let'))
     }
   }
 
   const newItem = (plans, name, isType) => {
     if (plans[name]) return { act: `new${isType}`, error: `${isType} ${name} exists.`}
     plans[name] = {}
-    return { act: 'added', [`${isType}`]: name } 
+    return { act: 'added', [isType]: name } 
   }
 
   const updateAttribute = (plans, item, address, value, isType) => {
@@ -100,18 +106,9 @@ exports.main = (cmds, responder) => {
     if (one) return delete(plans[one])
   }
 
-  const addressDestructor1 = (plans, address) => {
-    const [prime, genus, order] = address.split('.')
-    if (order) return delete(plans[prime][genus][order])
-    if (genus) return delete(plans[prime][genus])
-    if (prime) return delete(plans[prime])
-  }
-
-
-
   const addressAddressor = (address, plans, value) => {
     const [one, two, thr, fou, fiv] = address.split('.')
-     let v = null
+    let v = null
     typeof value == 'object' && !Array.isArray(value)? v = {...value}: v = value 
 
     if (one && !plans[one]) plans[one] = {}
@@ -127,23 +124,12 @@ exports.main = (cmds, responder) => {
     if (one) return plans[one] = v
   }
 
-
-  /* Rules:
-   * An address can be upto 3 items (a.b.c)
-   * Plans are prop or set pointer
-   * if a place (prime, genus, order) exists value is added
-   * if a place does not exist, will make one
-   * returns nothing as it mutates the plans object
-  */
-  const addressAddressor1 = (plans, address, value) => {
-    const [prime, genus, order] = address.split('.')
-    let v = null
-    typeof value == 'object' && !Array.isArray(value)? v = {...value}: v = value 
-    if (prime && !plans[prime]) { plans[prime] = {} }
-    if (genus && !plans[prime][genus]) { plans[prime][genus] = {} }
-    if (order) return plans[prime][genus][order] = v
-    if (genus) return plans[prime][genus] = v
-    if (prime) return plans[prime] = v
+  const makePlansFileString = (plans, varName = 'propsPlans', varType = 'const') => {
+    let s = ''
+    s += `${varType} ${varName} = {\n`
+    s += plansToStringWalker(plans)
+    s+= '}'
+    return s    
   }
 
   const makePropsPlansFile = (plans, varType = 'const') => {
@@ -183,7 +169,7 @@ exports.main = (cmds, responder) => {
             }
             s+= `${tabs}],\n`
           } else { // array is a list
-            s += `${tabs}${key}: [${plans[key]}],\n`
+            s += `${tabs}${key}: [${plans[key].map(k => `'${k}'`)}],\n`
           }
         }    
       }
@@ -250,7 +236,7 @@ exports.main = (cmds, responder) => {
 
   }
 
-  //console.log('cmds', cmds)
+  console.log('cmds', cmds)
 
   if (cmds.prop || cmds.set) { return updateItem(cmds, responder) }
 

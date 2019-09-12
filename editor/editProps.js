@@ -1,11 +1,13 @@
 'strict'
 
+//window.chronicle.plans.propsUpdate = propsPlans
 
-window.chronicle.plans.propsUpdate = propsPlans
 
-window.onload = () => edit()
+if (typeof appTesting == 'undefined') window.onload = () => edit() 
 
 const edit = (prop) => {
+  console.log('edit prop')
+  
   prop = displayCurrentProp(prop)
 
   let output = document.getElementById('output')
@@ -17,25 +19,28 @@ const edit = (prop) => {
   if (typeof window.chronicle.prop == 'undefined') return
 
   output.appendChild(propOutput(prop))
-  output.appendChild(addNewAttribute())
+  output.appendChild(addNewAttribute('prop', prop))
+
+  //console.log(window.chronicle.plans)
+  
 
   const plans = window.chronicle.plans.props[prop]    
-  const attribElems = elementsFromObjects(plans, elCom('div'))
+  const attribElems = elementsFromPlans(plans, 'prop', prop, elCom('div'))
 
   let mds = missingDefaults(window.chronicle.plans.props[prop])
-  const defaults = elementsFromObjects(mds, elCom('div', { id: 'missingDefaults', classes: 'missingDefaults' } ))    
+  const defaults = elementsFromPlans(mds, 'prop', prop, elCom('div', { id: 'missingDefaults', classes: 'missingDefaults' } ))    
 
   output.appendChild(attribElems)
   output.appendChild(defaults)
 }
 
 const propOutput = (prop) => {
-  let w = elCom('div', { id: 'prop' })
-  w.appendChild(elCom('div', { text: prop, classes: 'title'}))
-  w.appendChild(
-    elCom('div', { id: 'propAttributes', classes: 'propsEdit' })
-  )
-  return w
+  let el = elCom('div', { id: 'prop' })
+  el.appendChild(elCom('div', { text: prop, classes: 'activeItemTitle' }))
+  // w.appendChild(
+  //   elCom('div', { id: 'propAttributes', classes: 'propsEdit' })
+  // )
+  return el
 }
 
 const displayCurrentProp = (prop) => {
@@ -74,26 +79,26 @@ const listsProps = () => {
 }
 
 const addNewProp = () => {
-  let e = elCom('div', { id: 'newProp' })
-  e.innerText = 'New Prop'
-  e.className = 'button'
-  elAel(e, () => { edit('new') })
-  return e
+  let el = elCom('div', { id: 'newProp' })
+  el.innerText = 'New Prop'
+  el.className = 'button'
+  elAel(el, () => { edit('new') })
+  return el
 }
 
-const addNewAttribute = () => {
-  const id = 'newPropAttribute'
-  let na = elCom('div', {})
-  let t= elCom('textarea', { id: id, classes: 'textareaShort' })
-  // let b = renderButton('add', 'add', () => { updateProp({ act: 'add', valueElId: id }) })
-  let b = renderButton('add', 'add', () => { prepAndPostPropValues({ act: 'add', valueElId: id }) })
+// const addNewAttribute = (prop) => {
+//   const id = 'newPropAttribute'
+//   let el = elCom('div', {})
+//   let t= elCom('textarea', { id: id, classes: 'textareaShort' })
+//   // let b = renderButton('add', 'add', () => { updateProp({ act: 'add', valueElId: id }) })
+//   let b = renderButton('add', 'add', () => { postServerCommand({ act: 'add', prop, valueElId: id }) })
 
-  na.appendChild(elCom('span', { text: 'New Attrib' } ))
-  na.appendChild(t)
-  na.appendChild(b)
+//   el.appendChild(elCom('span', { text: 'New Attrib' } ))
+//   el.appendChild(t)
+//   el.appendChild(b)
 
-  return na
-}
+//   return el
+// }
 
 const missingDefaults = (targetProp) => {
   let missing = []
@@ -106,78 +111,6 @@ const missingDefaults = (targetProp) => {
   }
   return missing
 }
-
-// const nameLevelElement = (name, address, indClass) => {
-//   let e = elCom('div', { classes: `attrib ${indClass}`})
-//   const id = `${address}${name}`
-//   e.appendChild(elCom('span', { text: name, classes: `title ${indClass}` }))
-//   e.appendChild(elCom('textarea', { id: id, classes: 'textareaShort' }))
-//   e.appendChild(renderObjectButtons({name: name, address: address, valueElId: id }))
-//   return e
-// }
-
-// const valueLevelElement = (obj, name, address, indClass) => {
-//   let e = elCom('div', { classes: `attrb ${indClass}` })
-//   const id = `${address}${name}`
-//   e.appendChild(elCom('span', { text: '*' + name, classes: 'title' }))
-//   e.appendChild(elCom('textarea', { id: id, classes: 'textareaLong', value: obj[name] }))
-//   e.appendChild(renderValueButtons({name, address, valueElId: id }))
-//   return e
-// }
-
-// const renderObjectButtons = (cmds) => {
-//   const address = `${cmds.address}${cmds.name}`
-//   let btns = elCom('span', { classes: 'buttons' })
-
-//   const addressItems = address.split('.')
-//   if (addressItems.length < 3) {
-//     btns.appendChild(renderButton('add', 'add', () => { prepAndPostPropValues({ ...cmds, act: 'add' }) }))  
-//   }
-
-//   btns.appendChild(renderButton('update', 'update', () => { prepAndPostPropValues(cmds) }))  
-
-//   btns.appendChild(renderButton('delete', 'delete', () => {
-//     deletePropAttribute({ ...cmds, address: address }) 
-//   }))
-
-
-//   return btns
-// }
-
-// const renderValueButtons = (cmds) => {
-//   const address = `${cmds.address}${cmds.name}`
-//   let btns = elCom('span')
-//   btns.appendChild(renderButton('update', 'update', () => { prepAndPostPropValues(cmds) }))
-
-//   btns.appendChild(renderButton('delete', 'delete', () => {
-//     deletePropAttribute({ ...cmds, address: address, value: document.getElementById(cmds.valueElId).value })
-//   }))
-//   return btns
-// }
-
-// const prepAndPostPropValues = (cmds) => {
-//   // console.log('recievedValues', {...cmds}, action)
-
-//   let { name, address, valueElId, act } = cmds
-//   let value = document.getElementById(valueElId).value 
-
-//   const obj = makeAddress({ address, name, value, act })
-//   if (act) { 
-//     obj.act = act
-//   } else {
-//     obj.act = 'updateProp'
-//   }
-//   obj.prop = window.chronicle.prop  
-
-//   console.log('obj', obj)  
-
-//   //addressAddressor(window.chronicle.plans.propsUpdate[obj.prop], obj.address, obj.value)
- 
-//   ajax(JSON.stringify(obj))
-//   // return obj
-// }
-
-
 
 // Delete an attribute which is an attribute container.
 const deletePropAttribute = (cmds) => {
