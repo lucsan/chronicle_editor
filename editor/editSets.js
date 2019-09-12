@@ -2,12 +2,12 @@
 
 //window.chronicle.plans.setsUpdate = setsPlans
 
-window.onload = () => edit()
+if (typeof appTesting == 'undefined') window.onload = () => edit() 
 
 const edit = (set) => {
   console.log('editing', set)
   
-  set = checkCurrentSet(set)
+  set = checkCurrentItem('set', set)
 
   let output = document.getElementById('output')
   output.innerHTML = ''
@@ -18,19 +18,43 @@ const edit = (set) => {
   if (typeof window.chronicle.set == 'undefined') return
 
   output.appendChild(currentPlan(set))
-  output.appendChild(addNewAttribute('set'))
+  output.appendChild(addNewAttribute('set', set))
 
   const plans = window.chronicle.plans.sets[set]    
-  const attribElems = elementsFromObjects(plans, elCom('div'))
+  const attribElems = elementsFromPlans(plans, 'set', set, elCom('div'))
 
   // let mds = missingDefaults(window.chronicle.plans.props[prop])
   let mds = []
-  const defaults = elementsFromObjects(mds, elCom('div', { id: 'missingDefaults', classes: 'missingDefaults' } ))    
+  const defaults = elementsFromPlans(mds, 'set', set, elCom('div', { id: 'missingDefaults', classes: 'missingDefaults' } ))    
 
   output.appendChild(attribElems)
   output.appendChild(defaults)
 }
 
+const currentPlan = (plan) => {
+  let w = elCom('div', { id: 'item-title' })
+  w.appendChild(elCom('div', { text: plan, classes: 'title' }))
+  w.appendChild(elCom('div', { id: 'attributes', classes: 'edit' }))
+  return w
+}
+
+// const checkCurrentSet = (set) => {
+//   if (set != null) { 
+//     localStorage.setItem('chronicleSet', set)
+//   } else {
+//     set = localStorage.getItem('chronicleSet')
+//   }
+//   window.chronicle.set = set
+//   return set
+// }
+
+// const addNewItem = (type) => {
+//   let e = elCom('div', { id: `new${type}` })
+//   e.innerText = `New ${type}`
+//   e.className = 'button'
+//   elAel(e, () => { edit('new') })
+//   return e
+// }
 
 // const nameLevelElement = (name, address, indClass) => {
 //   let e = elCom('div', { classes: `attrib ${indClass}`})
@@ -80,15 +104,6 @@ const edit = (set) => {
 //   return btns
 // }
 
-// Delete an attribute which is an attribute container.
-const deleteAttribute = (cmds) => {
-  cmds.set = window.chronicle.set
-  cmds.act = 'deleteAttribute'
-  //addressDestructor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address)
-
-  // ajax(JSON.stringify(cmds)) 
-
-}
 
 
 // const addNewAttribute = (type) => {
@@ -129,43 +144,3 @@ const deleteAttribute = (cmds) => {
 //   ajax(JSON.stringify(obj))
 
 // }
-
-const checkCurrentSet = (set) => {
-  if (set != null) { 
-    localStorage.setItem('chronicleSet', set)
-  } else {
-    set = localStorage.getItem('chronicleSet')
-  }
-  window.chronicle.set = set
-  return set
-}
-
-const listsPlansItems = (type, func, newItem) => {
-
-  let ul = elCom('ul', { id: `${type}List`, classes: `${type}List ${type}` })
-  let plans = type == 'props'? window.chronicle.plans.props: window.chronicle.plans.sets
-  
-  if (newItem) ul.appendChild(newItem)  
-  for (let str in plans) {
-    let o = { text: str }
-    if (func == 'edit') o.func = () => { edit(str) }
-    ul.appendChild(elCom('li', o))
-  }
-  return ul
-}
-
-const addNewItem = (type) => {
-  let e = elCom('div', { id: `new${type}` })
-  e.innerText = `New ${type}`
-  e.className = 'button'
-  elAel(e, () => { edit('new') })
-  return e
-}
-
-const currentPlan = (plan) => {
-  let w = elCom('div', { id: 'item-title' })
-  w.appendChild(elCom('div', { text: plan, classes: 'title' }))
-  w.appendChild(elCom('div', { id: 'attributes', classes: 'edit' }))
-  return w
-}
-

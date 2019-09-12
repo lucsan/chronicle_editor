@@ -1,20 +1,19 @@
 'strict'
 
-//window.chronicle.plans.propsUpdate = propsPlans
-
-
 if (typeof appTesting == 'undefined') window.onload = () => edit() 
 
 const edit = (prop) => {
-  console.log('edit prop')
+  console.log('edit prop', window.chronicle.plans.props)
+  console.log(propsPlans)
   
-  prop = displayCurrentProp(prop)
+  
+  prop = checkCurrentItem('prop', prop)
 
   let output = document.getElementById('output')
   output.innerHTML = ''
 
-  output.appendChild(listsLocations())
-  output.appendChild(listsProps())
+  output.appendChild(listsPlansItems('sets'))
+  output.appendChild(listsPlansItems('props', 'edit', addNewItem('Prop')))
 
   if (typeof window.chronicle.prop == 'undefined') return
 
@@ -37,9 +36,6 @@ const edit = (prop) => {
 const propOutput = (prop) => {
   let el = elCom('div', { id: 'prop' })
   el.appendChild(elCom('div', { text: prop, classes: 'activeItemTitle' }))
-  // w.appendChild(
-  //   elCom('div', { id: 'propAttributes', classes: 'propsEdit' })
-  // )
   return el
 }
 
@@ -53,38 +49,41 @@ const displayCurrentProp = (prop) => {
   return prop
 }
 
-const listsLocations = () => {
-  let ul = elCom('ul', { id: 'setsList', classes: 'setsList' })
-  for (let s in setsPlans) {
-    ul.appendChild(elCom('li', { 
-      text: s,
-      'func': () => { console.log(s) } 
-    }))
+const missingDefaults = (targetProp) => {
+  let missing = []
+  const dp = defaultProp()
+  if (targetProp == undefined) return dp  
+  for (let i in dp) {
+    if (!targetProp[i]) {
+      missing[i] = dp[i]
+    }
   }
-  return ul
+  return missing
 }
 
-const listsProps = () => {
-  let c = elCom('div', { id: 'thingsList' })
-  c.appendChild(addNewProp())
 
-  for (const p in window.chronicle.plans.props) {
-    let el = elCom('div', { id: p })
-    el.innerText = p
-    el.className = `button ${p}`
-    elAel(el, () => { edit(p) })
-    c.appendChild(el)
-  }
-  return c
-}
 
-const addNewProp = () => {
-  let el = elCom('div', { id: 'newProp' })
-  el.innerText = 'New Prop'
-  el.className = 'button'
-  elAel(el, () => { edit('new') })
-  return el
-}
+// const listsProps = () => {
+//   let c = elCom('div', { id: 'thingsList' })
+//   c.appendChild(addNewProp())
+
+//   for (const p in window.chronicle.plans.props) {
+//     let el = elCom('div', { id: p })
+//     el.innerText = p
+//     el.className = `button ${p}`
+//     elAel(el, () => { edit(p) })
+//     c.appendChild(el)
+//   }
+//   return c
+// }
+
+// const addNewProp = () => {
+//   let el = elCom('div', { id: 'newProp' })
+//   el.innerText = 'New Prop'
+//   el.className = 'button'
+//   elAel(el, () => { edit('new') })
+//   return el
+// }
 
 // const addNewAttribute = (prop) => {
 //   const id = 'newPropAttribute'
@@ -99,26 +98,3 @@ const addNewProp = () => {
 
 //   return el
 // }
-
-const missingDefaults = (targetProp) => {
-  let missing = []
-  const dp = defaultProp()
-  if (targetProp == undefined) return dp  
-  for (let i in dp) {
-    if (!targetProp[i]) {
-      missing[i] = dp[i]
-    }
-  }
-  return missing
-}
-
-// Delete an attribute which is an attribute container.
-const deletePropAttribute = (cmds) => {
-  cmds.prop = window.chronicle.prop
-  cmds.act = 'deletePropAttribute'
-  addressDestructor(window.chronicle.plans.propsUpdate[cmds.prop], cmds.address)
-  ajax(JSON.stringify(cmds)) 
-  // console.log('deleteAttribute', cmds)
-}
-
-

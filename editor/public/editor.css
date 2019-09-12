@@ -29,11 +29,22 @@ span.title {
   width: 100px; 
 }
 
+.activeItemsList li {
+  border: 1px solid grey;
+  width: 200px;
+  cursor: pointer;
+}
+
+.activeItemsList li:hover {
+  background-color: rgb(181, 232, 255);
+}
+
 .activeItemTitle {
   font-weight: bold;
   font-size: larger;
 
 }
+
 
 .textareaLong {
   height: 1.2em;

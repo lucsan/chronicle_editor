@@ -50,6 +50,20 @@ describe('editPans', () => {
 
     })
 
+    it('should delete an existing attribute', () => {
+      const address = 'one.two'
+      const data = {
+        act: 'delete',
+        set: 'someSet',
+        address
+      }
+      makeAnAddress(data)
+      console.log(data)
+      
+      expect(data.address).toEqual(`${address}.${value}`)
+      
+    })
+
   })
 
 

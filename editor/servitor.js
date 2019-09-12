@@ -66,14 +66,14 @@ exports.main = (cmds, responder) => {
     return { act: 'added', [isType]: name } 
   }
 
+   const deleteItem = (plans, item, isType) => {
+    delete(plans[item])
+    return { act: 'deletedItem', [isType]: item }
+  } 
+
   const updateAttribute = (plans, item, address, value, isType) => {
     addressAddressor(address, plans[item], value)
     return { act: 'updatedAttribute', [isType]: item, address, value }
-  }
-
-  const deleteItem = (plans, item, isType) => {
-    delete(plans[item])
-    return { act: 'deletedItem', [isType]: item }
   }
 
   const deleteAttribute = (plans, item, address, isType) => {
