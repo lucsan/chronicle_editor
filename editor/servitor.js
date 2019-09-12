@@ -4,7 +4,6 @@ exports.main = (cmds, responder) => {
   const config = require('./config.js').config()
   const configPath = 'editor/config.js'
 
-
   const updateItem = (cmds, responder) => {
     const udSel = updateSelector(cmds)
     if (udSel.error) return responder(JSON.stringify(udSel.error), 'text/html')
@@ -81,22 +80,6 @@ exports.main = (cmds, responder) => {
     return { act: 'deletedAttribute', [isType]: item, address }
   }
 
-  // const deleteProp = (prop) => {
-  //   delete(global.plans.props[prop])
-  //   return { error: 'dev delPro', act: 'deleteProp' }
-  // }
-
-  // const deletePropAttribute = (prop, address) => {
-  //   console.log('delete Prop Attribute')
-  //   addressDestructor(global.plans.props[prop], address)
-  //   return { act: 'deletedPropAttribute', prop: prop, address: address }    
-  // }
-
-  // const updatePropAttribute = (prop, address, value) => {
-  //   addressAddressor(global.plans.props[prop], address, value)
-  //   return { act: 'updatedPropAttribute', prop: prop, address: address, value: value }
-  // }
-
   const addressDestructor = (plans, address) => {
     const [one, two, thr, fou, fiv] = address.split('.')
     if (fiv) return delete(plans[one][two][thr][fou][fiv])
@@ -130,22 +113,6 @@ exports.main = (cmds, responder) => {
     s += plansToStringWalker(plans)
     s+= '}'
     return s    
-  }
-
-  const makePropsPlansFile = (plans, varType = 'const') => {
-    let s = ''
-    s += `${varType} propsPlans = {\n`
-    s += plansToStringWalker(plans)
-    s+= '}'
-    return s
-  }
-
-  const makeSetsPlansFile = (plans, varType = 'const') => {
-    let s = ''
-    s +=  `${varType} setsPlans = {\n`
-    s += plansToStringWalker(plans)
-    s+= '}'
-    return s 
   }
 
   const plansToStringWalker = (plans, i = 0) => {
@@ -215,6 +182,11 @@ exports.main = (cmds, responder) => {
     const bcf = cf.replace('exports.config = config', '')
     fs.writeFileSync(`${config.root}/${config.public}/config.js`, bcf)
   }
+
+  const harden = () => {
+    const pp = fs.readFileSync(config.plans.props.temp, 'utf-8')
+    fs.writeFileSync(config.plans.props.source, pp.replace('let ', 'const '))
+  }
   
   const setup = () => {
     createBrowserConfig()
@@ -238,6 +210,8 @@ exports.main = (cmds, responder) => {
 
   console.log('cmds', cmds)
 
+  if (cmds.act == 'harden') return harden(responder)
+
   if (cmds.prop || cmds.set) { return updateItem(cmds, responder) }
 
   if (cmds.act == 'createBrowserConfig') return createBrowserConfig()
@@ -254,65 +228,3 @@ exports.main = (cmds, responder) => {
     addressDestructor
   }
 }
-
-
-
-  // const newPropAttribute = (prop, value) => {
-  //   if (global.plans.props[prop][value]) return { act: 'newPropAttribute', error: `prop ${prop} attrib ${value} exists.` }
-  //   global.plans.props[prop][value] = null
-  //   return { act: 'addedPropAttribute', prop: prop, address: value }    
-  // }
-
-  // const updateProp = (cmds, responder) => {
-    
-  //   const udSel = updatePropSelector(cmds)
-  //   if (udSel.error) return responder(JSON.stringify(udSel.error), 'text/html')
-    
-  //   if (!cmds.test) {
-  //     const fileText = makePropsPlansFile()
-  //     // fs.writeFileSync(target, fileText)      
-  //     fs.writeFileSync(config.plans.props.temp, fileText)      
-  //   }
-
-  //   // const params = JSON.stringify({ act: 'updatedProp', prop: cmds.prop, address: cmds.address })
-  //   //console.log('udSel', udSel)
-  //  console.log('udsel', udSel)
-    
-  //   const params = JSON.stringify(udSel)
-
-  //   responder(params, 'text/html')
-
-  //   //global.chronicle.save = `updated props ${cmds.prop} ${cmds.address}`
-  // }
-
-    // const newProp = (prop) => {
-  //   if (global.plans.props[prop]) return { act: 'newProp', error: `prop ${prop} exists.` }
-  //   global.plans.props[prop] = {}
-  //   return { act: 'addedProp', prop: prop }
-  // }
-
-  // const updatePropSelector = (cmds) => {
-  //   const {
-  //     act,
-  //     prop,
-  //     oldProp,
-  //     address,
-  //     value
-  //   } = cmds
-
-  //   if (act == 'deleteProp') { return deleteProp(prop) }
-  //   if (act == 'deletePropAttribute') { return deletePropAttribute(prop, address) }
-
-  //   if (!cmds.value && cmds.value != 'new') return { act: cmds.act, error: `no value given` }
-
-  //   if (!prop && !address) { return newProp(value) }
-  //   if (prop && !address)  { return newPropAttribute(prop, value) }
-  //   if (prop && address)   { return updatePropAttribute(prop, address, value) }
-
-    
-  //   console.log('cmds', cmds)
-    
-  //   return { error: 'dev upSel' }
-    
-  // }
-

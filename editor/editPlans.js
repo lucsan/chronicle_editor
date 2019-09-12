@@ -91,24 +91,21 @@ const valueLevelElement = (name, address, indClass, obj, itemType, item) => {
 
 const renderObjectButtons = (cmds) => {
   const address = `${cmds.address}${cmds.name}`
-  //const itemType = cmds.prop? cmds.prop: cmds.sets
   let btns = elCom('span', { classes: 'buttons' })
-
   const addressItems = address.split('.')
+
   if (addressItems.length < 3) {
     btns.appendChild(renderButton('add', 'add', () => { postServerCommand({ ...cmds, act: 'add', address }) }))  
   }
   btns.appendChild(renderButton('update', 'update', () => { postServerCommand({ ...cmds, act: 'update', address }) }))  
- 
   btns.appendChild(renderButton('delete', 'delete', () => { postServerCommand({ ...cmds, act: 'delete', address }) }))
-
   return btns
 }
 
 const renderValueButtons = (cmds) => {
   const address = `${cmds.address}${cmds.name}`
   let btns = elCom('span')
-  btns.appendChild(renderButton('update', 'update', () => { postServerCommand({ ...cmds, act: 'update' }) }))
+  btns.appendChild(renderButton('update', 'update', () => { postServerCommand({ ...cmds, act: 'update', address }) }))
   btns.appendChild(renderButton('delete', 'delete', () => { postServerCommand({ ...cmds, act: 'delete', address }) }))
   return btns
 }
@@ -255,6 +252,10 @@ const serverAdded = (data) => {
   } else {
     addressAddressor(data.address, data.value, window.chronicle.plans[data.itemType][data.item])
   }
+}
+
+const harden = (plansType) => {
+  ajax(JSON.stringify({ act: 'harden', plans: plansType }))
 }
 
 const ajax = (cmds) => {

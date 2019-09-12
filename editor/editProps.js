@@ -12,6 +12,12 @@ const edit = (prop) => {
   let output = document.getElementById('output')
   output.innerHTML = ''
 
+  output.appendChild(elCom('div', { 
+    text: 'Harden Props',
+    classes: 'harden button',
+    func:  () => { harden('props') } 
+  } ))
+
   output.appendChild(listsPlansItems('sets'))
   output.appendChild(listsPlansItems('props', 'edit', addNewItem('Prop')))
 
