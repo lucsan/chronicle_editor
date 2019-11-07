@@ -60,32 +60,53 @@ const elementsFromPlans = (plans, itemType, item, el) => {
   return el
 }
 
-const checkCurrentItem = (itemType, item) => {
-  if (item != null) { 
-    localStorage.setItem(`chronicle${itemType}`, item)
-  } else {
-    item = localStorage.getItem(`chronicle${itemType}`)
-  }
-  window.chronicle[itemType] = item
-  return item
-}
+// const checkCurrentItem = (itemType, item) => {
+//   if (item != null) { 
+//     localStorage.setItem(`chronicle${itemType}`, item)
+//   } else {
+//     item = localStorage.getItem(`chronicle${itemType}`)
+//   }
+//   window.chronicle[itemType] = item
+//   return item
+// }
 
 const nameLevelElement = (name, address, indClass, itemType, item) => {
   let e = elCom('div', { classes: `attrib ${indClass}`})
   const id = `${address}${name}`
+  let cmds = { [itemType]: item, name, valueElId: id }
   e.appendChild(elCom('span', { text: name, classes: `title ${indClass}` }))
-  e.appendChild(elCom('textarea', { id: id, classes: 'textareaShort' }))
-  e.appendChild(renderObjectButtons({ [itemType]: item, name, address, valueElId: id }))
+  let ta = elCom('textarea', { id, classes: 'textareaShort' })
+  const addressItems = address.split('.')
+  cmds.act = 'update'
+  if (addressItems.length < 3) {
+    cmds.act = 'add'
+  }
+  ta. addEventListener('keydown', (key) => { keypressPost(key, {...cmds, address: id}) })
+  e.appendChild(ta)
+  e.appendChild(renderObjectButtons({...cmds, address}))
   return e
 }
 
 const valueLevelElement = (name, address, indClass, obj, itemType, item) => {
   let e = elCom('div', { classes: `attrb ${indClass}` })
   const id = `${address}${name}`
+  let cmds = { [itemType]: item, name, valueElId: id }
   e.appendChild(elCom('span', { text: '*' + name, classes: 'title' }))
-  e.appendChild(elCom('textarea', { id: id, classes: 'textareaLong', value: obj[name] }))
-  e.appendChild(renderValueButtons({ [itemType]: item, name, address, valueElId: id }))
+  let ta = elCom('textarea', { id, classes: 'textareaLong', value: obj[name] })
+  cmds.act = 'update'
+  ta.addEventListener('keydown', (key) => { keypressPost(key, {...cmds, address: id}) })
+  e.appendChild(ta)
+  e.appendChild(renderValueButtons({...cmds, address}))
   return e
+}
+
+const keypressPost = (e, cmds) => {
+  if (e.key != 'Enter') return
+  e.preventDefault() 
+  console.log(cmds)
+  
+  postServerCommand(cmds)  
+  return false  
 }
 
 const renderObjectButtons = (cmds) => {
@@ -125,7 +146,8 @@ const renderButton = (cssClass, iconCode, func) => {
 }
 
 const postServerCommand = (cmds) => {
-  ajax(JSON.stringify(prepServerValues(cmds)))
+  if (!cmds.prep) return ajax(JSON.stringify(prepServerValues(cmds)))
+  return ajax(JSON.stringify(cmds))
 }
 
 // Server requires: act, set or prop, [address], [value]
@@ -162,6 +184,13 @@ const addNewPlan = (itemType, itemName) => {
   const id = 'newPropOrSet'
   let el = elCom('div', {})
   let t = elCom('textarea', { id, classes: 'textareaShort', itemType, item: itemName })
+  t.addEventListener('keydown', (e) => {
+    if (e.key != 'Enter') return
+    e.preventDefault() 
+    postServerCommand({ act: 'add', [itemType]: itemName, valueElId: id })  
+    return false  
+  })
+  //keypressPost(key, cmds, address, 'update')
   let b = renderButton(
     'add', 
     'add', 
@@ -196,21 +225,29 @@ const addNewAttribute = (itemType, itemName) => {
   return el
 }
 
-
-
-const listsPlansItems = (type, func, newItem) => {
+const listsPlansItems = (plansType, func, newItem) => {
   const active = func? 'activeItemsList': ''
 
-  let ul = elCom('ul', { id: `${type}List`, classes: `${type}List ${type} list ${active}` })
-  let plans = type == 'props'? window.chronicle.plans.props: window.chronicle.plans.sets
+  let ul = elCom('ul', { id: `${plansType}List`, classes: `${plansType}List ${plansType} list ${active}` })
+  let plans = plansType == 'props'? propsPlans: setsPlans
+  let planType = plansType == 'props'? 'prop': 'set'
   
-  if (newItem) ul.appendChild(newItem)  
-  for (let str in plans) {
-    let o = { text: str }
-    if (func == 'edit') o.func = () => { edit(str) }
-    ul.appendChild(elCom('li', o))
+  if (newItem) ul.appendChild(newItem)
+
+  for (let planCode in plans) {
+    let o = { text: planCode, classes: 'select-plan' }
+    if (func == 'edit') o.func = () => { edit(planCode) }
+    let li = elCom('li')
+    li.appendChild(elCom('div', o)) 
+    li.appendChild(renderButton('delete', 'delete', () => { deletePlan(planType, planCode) }))
+    ul.appendChild(li)
   }
   return ul
+}
+
+const deletePlan = (planType, planCode) => {
+  postServerCommand({ [planType]: planCode, act: 'delete', prep: 'none' })
+  // TODO: update interface.
 }
 
 

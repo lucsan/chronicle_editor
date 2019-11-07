@@ -2,10 +2,11 @@ const prop = () => {
   return {
     artist: '',
     desc: '',
-    loc: '',
+    //loc: '',
     locs: [],
     pickUp: false,
-    isBox: false,
+    Boxes: false,
+    reveals: [],
     hit: true,
     strikes: false,
     actions: {
@@ -13,17 +14,27 @@ const prop = () => {
       inv: {},
       bod: {},
     },
+    box: {
+      key: '',
+    },
+    combines: {
+      needs: [],
+      destroys: [],
+      desc: '',
+    },
+    pays: {
+      criteria: { list: [], inOrder: false },
+      drops: [],
+      action: '',
+      paid: 0,
+      max: 0,
+    },
     properties: {
       attack: 0,
       defense: 0,
       weight: 0,
       poking: true,
       drops: [],
-    },
-    combines: {
-      needs: [],
-      destroys: [],
-      desc: '',
     },
   }
 }
@@ -34,16 +45,25 @@ const set = () => {
     proseScript: '',
     label: '',
     designer: '',
-    exits: [{ to: '', desc: '', actions: {} }],
+    exits: { 
+      setCode: { 
+        desc: '',
+        door: '',
+        locked: false,
+        key: '',
+        hidden: false,
+        reveal: '',
+      },
+    },
   }
 }
 
-const box = () => {
-  desc: ''
-}
+// const box = () => {
+//   desc: ''
+// }
 
-const all = () => { return { plan: plan, set: set } }
+// const all = () => { return { plan: plan, set: set } }
 
-exports.all = all
-exports.plan = plan
+// exports.all = all
+exports.prop = prop
 exports.set = set

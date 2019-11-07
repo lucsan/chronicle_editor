@@ -2,18 +2,28 @@ const defaultProp = () => {
   return {
     artist: '',
     desc: '',
-    loc: '',
+    //loc: '',
     locs: [],
     pickUp: false,
     hit: true,
     strikes: false,
+    reveals: [],
+    boxs: [],    
     actions: {
       env: {},
       inv: {},
       bod: {},
     },
-    box: {},
-    boxs: [],
+    box: { 
+      key: '', 
+    },
+    pays: {
+      criteria: { list: [], inOrder: false },
+      drops: [],
+      action: '',
+      paid: 0,
+      max: 0,
+    },
     combines: {
       needs: [],
       destroys: [],
@@ -35,7 +45,14 @@ const defaultSet = () => {
     proseScript: '',
     label: '',
     designer: '',
-    exits: [{ to: '', desc: '', actions: {} }],
+    exits: { 
+      desc: '',
+      door: false,
+      locked: false,
+      key: '',
+      hidden: false,
+      reveal: ''        
+    },
   }
 }
 

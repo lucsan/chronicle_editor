@@ -2,7 +2,10 @@ exports.main = (cmds, responder) => {
   const ckr = require('./checker.js')
   const fs = require('fs')
   const config = require('./config.js').config()
+  const propTemplate = require('./templates.js').prop()
+  const setTemplate = require('./templates.js').set()
   const configPath = 'editor/config.js'
+  
 
   const updateItem = (cmds, responder) => {
     const udSel = updateSelector(cmds)
@@ -15,7 +18,7 @@ exports.main = (cmds, responder) => {
     responder(JSON.stringify(udSel), 'text/html')
   }
 
-  const updateSelector = (cmds) => {
+  const updateSelector = (cmds) => { 
     const { act, prop, set, address, value } = cmds
     
     let plans = {}
@@ -24,13 +27,13 @@ exports.main = (cmds, responder) => {
 
     if (cmds.prop) {
       itemType = 'prop'
-      plans = global.plans.props
+      plans = propsPlans
       item = prop
     }
 
     if (cmds.set) {
       itemType = 'set'
-      plans = global.plans.sets
+      plans = propsPlans
       item = set
     }
 
@@ -65,14 +68,14 @@ exports.main = (cmds, responder) => {
     return { act: 'added', [isType]: name } 
   }
 
-   const deleteItem = (plans, item, isType) => {
+  const deleteItem = (plans, item, isType) => {
     delete(plans[item])
     return { act: 'deletedItem', [isType]: item }
   } 
 
-  const updateAttribute = (plans, item, address, value, isType) => {
-    addressAddressor(address, plans[item], value)
-    return { act: 'updatedAttribute', [isType]: item, address, value }
+  const updateAttribute = (plans, item, address, value, plansType) => {
+    addressAddressor(address, plans[item], value, plansType)
+    return { act: 'updatedAttribute', [plansType]: item, address, value }
   }
 
   const deleteAttribute = (plans, item, address, isType) => {
@@ -89,9 +92,11 @@ exports.main = (cmds, responder) => {
     if (one) return delete(plans[one])
   }
 
-  const addressAddressor = (address, plans, value) => {
+  const addressAddressor = (address, plans, value, plansType) => {
     const [one, two, thr, fou, fiv] = address.split('.')
     let v = null
+    console.log('addressAddressor value:', value, 'addresses:', one, two, thr, fou, fiv)
+    
     typeof value == 'object' && !Array.isArray(value)? v = {...value}: v = value 
 
     if (one && !plans[one]) plans[one] = {}
@@ -102,10 +107,71 @@ exports.main = (cmds, responder) => {
 
     if (fiv) return plans[one][two][thr][fou][fiv] = v
     if (fou) return plans[one][two][thr][fou] = v
-    if (thr) return plans[one][two][thr] = v
-    if (two) return plans[one][two] = v
-    if (one) return plans[one] = v
+    if (thr) return plans[one][two][thr] = valueTypeThr(v, thr, { one, two }, plansType)
+    if (two) return plans[one][two] = valueTypeTwo(v, two, { one }, plansType)
+    if (one) return plans[one] = valueTypeOne(v, one, plansType)
+
   }
+
+  const valueTypeThr = (value, nub, address, plansType) => {
+    const { one, two } = address
+    let twa = two
+    const template = valueTypeGetTemplate(plansType)
+
+    if (one == 'exits') { twa = 'setCode' }
+
+    if (!template[one][twa][nub]) {
+      console.log(`nub value ${nub}, is not in template.`)
+      return value
+    }
+
+    if (typeof template[one][twa][nub] == 'object' && Array.isArray(template[one][twa][nub])) {
+      return value.split(',')
+    }
+    return value
+  }
+
+  const valueTypeTwo = (value, nub, address, plansType) => {
+    const { one } = address
+    const template = valueTypeGetTemplate(plansType)
+
+    if (!template[one][nub]) {
+      console.log(`nub value ${nub}, is not in template.`)
+      return value
+    }
+
+    if (typeof template[one][nub] == 'object' && Array.isArray(template[one][nub])) {
+      return value.split(',')
+    }
+    return value
+  }
+
+
+  const valueTypeOne = (value, nub, plansType) => {
+    const template = valueTypeGetTemplate(plansType)
+
+    const keys = Object.keys(template)
+    const found = keys.find((i) => i == nub)
+
+    if (!found) {
+      console.log(`nub ${nub}, is not in template.`)
+      return value
+    }
+
+    if (typeof template[nub] == 'object' && Array.isArray(template[nub])) {
+      return value.split(',')
+    }
+    return value
+    
+  }
+
+  const valueTypeGetTemplate = (plansType) => {
+    let template = {}
+    if (plansType == 'prop') template = propTemplate
+    if (plansType == 'set') template = setTemplate
+    return template
+  }
+
 
   const makePlansFileString = (plans, varName = 'propsPlans', varType = 'const') => {
     let s = ''
@@ -186,6 +252,8 @@ exports.main = (cmds, responder) => {
   const harden = () => {
     const pp = fs.readFileSync(config.plans.props.temp, 'utf-8')
     fs.writeFileSync(config.plans.props.source, pp.replace('let ', 'const '))
+    const sp = fs.readFileSync(config.plans.sets.temp, 'utf-8')
+    fs.writeFileSync(config.plans.sets.source, sp.replace('let ', 'const '))
   }
   
   const setup = () => {

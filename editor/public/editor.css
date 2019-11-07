@@ -37,7 +37,23 @@ span.title {
 
 .activeItemsList li:hover {
   background-color: rgb(181, 232, 255);
+  color: white;
 }
+
+.activeItemsList li div {
+  float:left;
+  width: 70%;
+}
+
+.activeItemsList li div:hover {
+  background-color: rgb(21, 19, 151);
+}
+
+.activeItemsList li span:hover {
+  background-color: rgb(255, 61, 61);
+}
+
+
 
 .activeItemTitle {
   font-weight: bold;
