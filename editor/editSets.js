@@ -1,146 +1,51 @@
 'strict'
 
-//window.chronicle.plans.setsUpdate = setsPlans
-
 if (typeof appTesting == 'undefined') window.onload = () => edit() 
 
 const edit = (set) => {
-  console.log('editing', set)
-  
-  set = checkCurrentItem('set', set)
 
   let output = document.getElementById('output')
   output.innerHTML = ''
 
+  output.appendChild(elCom('div', { 
+    text: 'Harden Sets',
+    classes: 'harden button',
+    func:  () => { harden('sets') } 
+  } ))
+
   output.appendChild(listsPlansItems('props'))
   output.appendChild(listsPlansItems('sets', 'edit', addNewItem('Set')))
+ 
+  if (set == 'new') {
+    output.appendChild(setOutput(set))
+    output.appendChild(addNewPlan('set', set))
+  }
+
+  if (typeof setsPlans[set] == 'undefined') return
   
-  if (typeof window.chronicle.set == 'undefined') return
+  const attribElems = elementsFromPlans(setsPlans[set], 'set', set, elCom('div'))
 
-  output.appendChild(currentPlan(set))
-  output.appendChild(addNewAttribute('set', set))
-
-  const plans = window.chronicle.plans.sets[set]    
-  const attribElems = elementsFromPlans(plans, 'set', set, elCom('div'))
-
-  // let mds = missingDefaults(window.chronicle.plans.props[prop])
-  let mds = []
+  let mds = missingDefaults(window.chronicle.plans.sets[set])
   const defaults = elementsFromPlans(mds, 'set', set, elCom('div', { id: 'missingDefaults', classes: 'missingDefaults' } ))    
 
   output.appendChild(attribElems)
   output.appendChild(defaults)
 }
 
-const currentPlan = (plan) => {
-  let w = elCom('div', { id: 'item-title' })
-  w.appendChild(elCom('div', { text: plan, classes: 'title' }))
-  w.appendChild(elCom('div', { id: 'attributes', classes: 'edit' }))
-  return w
+const setOutput = (set) => {
+  let el = elCom('div', { id: 'set' })
+  el.appendChild(elCom('div', { text: set, classes: 'activeItemTitle' }))
+  return el
 }
 
-// const checkCurrentSet = (set) => {
-//   if (set != null) { 
-//     localStorage.setItem('chronicleSet', set)
-//   } else {
-//     set = localStorage.getItem('chronicleSet')
-//   }
-//   window.chronicle.set = set
-//   return set
-// }
-
-// const addNewItem = (type) => {
-//   let e = elCom('div', { id: `new${type}` })
-//   e.innerText = `New ${type}`
-//   e.className = 'button'
-//   elAel(e, () => { edit('new') })
-//   return e
-// }
-
-// const nameLevelElement = (name, address, indClass) => {
-//   let e = elCom('div', { classes: `attrib ${indClass}`})
-//   const id = `${address}${name}`
-//   e.appendChild(elCom('span', { text: name, classes: `title ${indClass}` }))
-//   e.appendChild(elCom('textarea', { id: id, classes: 'textareaShort' }))
-//   e.appendChild(renderObjectButtons({name: name, address: address, valueElId: id }))
-//   return e
-// }
-
-// const renderObjectButtons = (cmds) => {
-//   const address = `${cmds.address}${cmds.name}`
-//   let btns = elCom('span', { classes: 'buttons' })
-
-//   const addressItems = address.split('.')
-//   if (addressItems.length < 3) {
-//     btns.appendChild(renderButton('add', 'add', () => { prepAndPostValues({ ...cmds, act: 'add' }) }))  
-//   }
-
-//   btns.appendChild(renderButton('update', 'update', () => { prepAndPostValues(cmds) }))  
-
-//   btns.appendChild(renderButton('delete', 'delete', () => {
-//     deleteAttribute({ ...cmds, address: address }) 
-//   }))
-
-
-//   return btns
-// }
-
-// const valueLevelElement = (obj, name, address, indClass) => {
-//   let e = elCom('div', { classes: `attrb ${indClass}` })
-//   const id = `${address}${name}`
-//   e.appendChild(elCom('span', { text: '*' + name, classes: 'title' }))
-//   e.appendChild(elCom('textarea', { id: id, classes: 'textareaLong', value: obj[name] }))
-//   e.appendChild(renderValueButtons({name, address, valueElId: id }))
-//   return e
-// }
-
-// const renderValueButtons = (cmds) => {
-//   const address = `${cmds.address}${cmds.name}`
-//   let btns = elCom('span')
-//   btns.appendChild(renderButton('update', 'update', () => { prepAndPostValues(cmds) }))
-
-//   btns.appendChild(renderButton('delete', 'delete', () => {
-//     deleteAttribute({ ...cmds, address: address, value: document.getElementById(cmds.valueElId).value })
-//   }))
-//   return btns
-// }
-
-
-
-// const addNewAttribute = (type) => {
-//   const id = 'newAttribute'
-//   let na = elCom('div', {})
-//   let t= elCom('textarea', { id: id, classes: 'textareaShort' })
-//   let b = renderButton('add', 'add', () => { postServerCommand({ set: window.chronicle.set, act: 'add', valueElId: id }) })
-
-//   na.appendChild(elCom('span', { text: 'New Attrib' } ))
-//   na.appendChild(t)
-//   na.appendChild(b)
-
-//   return na
-// }
-
-// const prepAndPostValues = (cmds) => {
-//   console.log('recievedValues', cmds)
-//   let { name, address, valueElId, act, type } = cmds
-//   let value = document.getElementById(valueElId).value
-
-//   const obj = makeAddress({ address, name, value, act })
-// console.log('ppv', obj)
-
-//   //obj.type = type
-//   if (act) { 
-//     obj.act = act
-//   } else {
-//     obj.act = 'update'
-//   }
-//   obj.prop = window.chronicle.prop
-//   obj.set = window.chronicle.set
-
-//   console.log(obj)
-  
-
-//   // addressAddressor(window.chronicle.plans.propsUpdate[obj.prop], obj.address, obj.value)
- 
-//   ajax(JSON.stringify(obj))
-
-// }
+const missingDefaults = (targetSet) => {
+  let missing = []
+  const ds = defaultSet()
+  if (targetSet == undefined) return ds
+  for (let i in ds) {
+    if (!targetSet[i]) {
+      missing[i] = ds[i]
+    }
+  }
+  return missing
+}

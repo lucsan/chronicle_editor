@@ -17,6 +17,7 @@ const addressDestructor = (address, plans) => {
 const addressAddressor = (address, value, plans) => {
   const [one, two, thr, fou, fiv] = address.split('.')
   let v = null
+  
   typeof value == 'object' && !Array.isArray(value)? v = {...value}: v = value 
 
   if (one && !plans[one]) plans[one] = {}
@@ -45,9 +46,7 @@ const elementsFromPlans = (plans, itemType, item, el) => {
             typeof obj[k][0] == 'object'
           )
       ) {
-        //if (!Array.isArray(obj[k])) 
         el.appendChild(nameLevelElement(k, pa, indClass, itemType, item))
-
         walk(obj[k], ++ind, pa += `${k}.`)
         --ind
         pa = pa.replace(`${k}.`, '')
@@ -159,6 +158,25 @@ const addNewItem = (type) => {
   return e
 }
 
+const addNewPlan = (itemType, itemName) => {
+  const id = 'newPropOrSet'
+  let el = elCom('div', {})
+  let t = elCom('textarea', { id, classes: 'textareaShort', itemType, item: itemName })
+  let b = renderButton(
+    'add', 
+    'add', 
+    () => { postServerCommand({ 
+      act: 'add', 
+      [itemType]: itemName, 
+      valueElId: id 
+    }) })
+
+  el.appendChild(elCom('span', { text: `New ${itemType}`, classes: 'title' } ))
+  el.appendChild(t)
+  el.appendChild(b)
+  return el
+}
+
 const addNewAttribute = (itemType, itemName) => {
   const id = 'newAttribute'
   let el = elCom('div', {})
@@ -177,6 +195,8 @@ const addNewAttribute = (itemType, itemName) => {
   el.appendChild(b)
   return el
 }
+
+
 
 const listsPlansItems = (type, func, newItem) => {
   const active = func? 'activeItemsList': ''
