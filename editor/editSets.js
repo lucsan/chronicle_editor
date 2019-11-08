@@ -41,7 +41,7 @@ const setOutput = (set) => {
 
 const missingDefaults = (targetSet) => {
   let missing = []
-  const ds = defaultSet()
+  const ds = set()
   if (targetSet == undefined) return ds
   for (let i in ds) {
     if (!targetSet[i]) {

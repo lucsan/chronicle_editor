@@ -2,10 +2,9 @@ exports.main = (cmds, responder) => {
   const ckr = require('./checker.js')
   const fs = require('fs')
   const config = require('./config.js').config()
-  const propTemplate = require('./templates.js').prop()
-  const setTemplate = require('./templates.js').set()
+  const propTemplate = require('./plans/templatesModule.js').prop()
+  const setTemplate = require('./plans/templatesModule.js').set()
   const configPath = 'editor/config.js'
-  
 
   const updateItem = (cmds, responder) => {
     const udSel = updateSelector(cmds)
@@ -51,16 +50,6 @@ exports.main = (cmds, responder) => {
     
   }
 
-  const makePlansFile = (isType) => {
-    console.log('making plans files', isType)
-    
-    if (isType == 'prop') {
-      return fs.writeFileSync(config.plans.props.temp, makePlansFileString(global.plans.props, 'propsPlans', 'let'))
-    }
-    if (isType == 'set') {
-      return fs.writeFileSync(config.plans.sets.temp, makePlansFileString(global.plans.sets, 'setsPlans', 'let'))
-    }
-  }
 
   const newItem = (plans, name, isType) => {
     if (plans[name]) return { act: `new${isType}`, error: `${isType} ${name} exists.`}
@@ -97,7 +86,9 @@ exports.main = (cmds, responder) => {
     let v = null
     console.log('addressAddressor value:', value, 'addresses:', one, two, thr, fou, fiv)
     
-    typeof value == 'object' && !Array.isArray(value)? v = {...value}: v = value 
+    typeof value == 'object' && !Array.isArray(value)? v = {...value}: v = value
+    if (value == 'true') v = true
+    if (value == 'false') v = false
 
     if (one && !plans[one]) plans[one] = {}
     if (two && !plans[one][two]) plans[one][two] = {}
@@ -211,7 +202,7 @@ exports.main = (cmds, responder) => {
       return plans
     }
   }
-
+  
   const demarcPairing = (item, key, tabs) => {
     let ks = `${key}: `
     let omo = '{\n'
@@ -222,17 +213,27 @@ exports.main = (cmds, responder) => {
       omc = '],\n'
     }
     if (toi == 'string') {
-      omo = '\''
-      omc = '\',\n'
+      omo = '`'
+      omc = '`,\n'
     }
     if (toi == 'number' || toi == 'boolean' || toi == 'function') {
       omo = ''
       omc = ',\n'
     }
-
     return { ks, omo, omc }
   }
   
+  const makePlansFile = (isType) => {
+    console.log('making plans files', isType)
+    
+    if (isType == 'prop') {
+      return fs.writeFileSync(config.plans.props.temp, makePlansFileString(global.plans.props, 'propsPlans', 'let'))
+    }
+    if (isType == 'set') {
+      return fs.writeFileSync(config.plans.sets.temp, makePlansFileString(global.plans.sets, 'setsPlans', 'let'))
+    }
+  }
+
   const createEditPlans = () => {
     console.log('creating edit plans')
     
@@ -243,10 +244,19 @@ exports.main = (cmds, responder) => {
     fs.writeFileSync(config.plans.sets.temp, sp.replace('const ', 'let '))
   }
 
+
   const createBrowserConfig = () => {
     const cf = fs.readFileSync(configPath, 'utf-8')
     const bcf = cf.replace('exports.config = config', '')
     fs.writeFileSync(`${config.root}/${config.public}/config.js`, bcf)
+  }
+
+  const createBrowserPropsTemplates = () => {
+    const ts = fs.readFileSync(`${config.root}/${config.plansRoot}/templatesModule.js`, 'utf-8')
+    let tpls = ts.replace('exports.all = () => { return { prop, set } }', '')
+    tpls = tpls.replace('exports.prop = prop', '')
+    tpls = tpls.replace('exports.set = set', '')
+    fs.writeFileSync(`${config.root}/${config.plansRoot}/templatesBrowser.js`, tpls)
   }
 
   const harden = () => {
@@ -258,6 +268,7 @@ exports.main = (cmds, responder) => {
   
   const setup = () => {
     createBrowserConfig()
+    createBrowserPropsTemplates()
 
     if (global.plans == undefined) {
       createEditPlans()

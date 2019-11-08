@@ -40,7 +40,7 @@ const propOutput = (prop) => {
 
 const missingDefaults = (targetProp) => {
   let missing = []
-  const dp = defaultProp()
+  const dp = prop()
   if (targetProp == undefined) return dp  
   for (let i in dp) {
     if (!targetProp[i]) {

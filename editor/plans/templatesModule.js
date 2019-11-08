@@ -1,21 +1,25 @@
-const defaultProp = () => {
+const prop = () => {
   return {
     artist: '',
     desc: '',
-    //loc: '',
     locs: [],
     pickUp: false,
+    Boxes: false,
+    reveals: [],
     hit: true,
     strikes: false,
-    reveals: [],
-    boxs: [],    
     actions: {
       env: {},
       inv: {},
       bod: {},
     },
-    box: { 
-      key: '', 
+    box: {
+      key: '',
+    },
+    combines: {
+      needs: [],
+      destroys: [],
+      desc: '',
     },
     pays: {
       criteria: { list: [], inOrder: false },
@@ -24,11 +28,6 @@ const defaultProp = () => {
       paid: 0,
       max: 0,
     },
-    combines: {
-      needs: [],
-      destroys: [],
-      desc: '',
-    },    
     properties: {
       attack: 0,
       defense: 0,
@@ -39,25 +38,26 @@ const defaultProp = () => {
   }
 }
 
-const defaultSet = () => {
+const set = () => {
   return {
+    designer: '',    
     desc: '',
     proseScript: '',
     label: '',
-    designer: '',
+    hidden: false,
     exits: { 
-      desc: '',
-      door: false,
-      locked: false,
-      key: '',
-      hidden: false,
-      reveal: ''        
+      setCode: { 
+        desc: '',
+        door: '',
+        locked: false,
+        key: '',
+        hidden: false,
+        reveal: '',
+      },
     },
   }
 }
 
-const defaultBox = () => {
-  desc: ''
-}
-
-const defaultAll = () => { return { plan: plan, set: set, box: box } }
+exports.all = () => { return { prop, set } }
+exports.prop = prop
+exports.set = set

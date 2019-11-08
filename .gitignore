@@ -1,2 +1,7 @@
 /_dump/*
 /node_modules/*
+editor/public/config.js
+editor/plans/tempProps.js
+editor/plans/tempSets.js
+editor/plans/templatesBrowser.js
+editor/plansBac/*

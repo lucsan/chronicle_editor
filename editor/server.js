@@ -23,7 +23,7 @@ function start () {
     request.on('error', function(err){ console.log('err ', err) })
 
     request.on('data', function(data){
-      console.log('requestOn:data')
+      // console.log('requestOn:data')
       svt.main(JSON.parse(data.toString()), responder, response)
     })
     router.server(request, responder)
