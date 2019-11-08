@@ -238,8 +238,11 @@ const listsPlansItems = (plansType, func, newItem) => {
     let o = { text: planCode, classes: 'select-plan' }
     if (func == 'edit') o.func = () => { edit(planCode) }
     let li = elCom('li')
-    li.appendChild(elCom('div', o)) 
-    li.appendChild(renderButton('delete', 'delete', () => { deletePlan(planType, planCode) }))
+    li.appendChild(elCom('div', o))
+    if (newItem) {
+      li.appendChild(renderButton('delete', 'delete', () => { deletePlan(planType, planCode) }))
+    }
+    
     ul.appendChild(li)
   }
   return ul

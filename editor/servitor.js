@@ -27,13 +27,13 @@ exports.main = (cmds, responder) => {
 
     if (cmds.prop) {
       itemType = 'prop'
-      plans = propsPlans
+      plans = global.plans.props
       item = prop
     }
 
     if (cmds.set) {
       itemType = 'set'
-      plans = propsPlans
+      plans = global.plans.sets
       item = set
     }
 

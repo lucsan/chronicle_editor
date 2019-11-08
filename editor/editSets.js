@@ -31,13 +31,6 @@ const edit = (set) => {
   output.appendChild(attribElems)
   output.appendChild(defaults)
 
-  // let tas = document.getElementsByTagName('textarea')
-  // for (let t of tas) {
-  //   t.addEventListener('keydown', (key) => {console.log(key.key)  })
-    
-  // }
-
-
 }
 
 const setOutput = (set) => {
